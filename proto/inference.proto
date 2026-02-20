@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+package openclaw.inference;
+
+import "messages.proto";
+
+// Inference service exposed by every peer node.
+service InferenceService {
+  // Send a full inference request; the receiving peer routes through the
+  // pipeline if needed.
+  rpc Infer (InferRequest) returns (InferResponse);
+
+  // Stream tokens back for autoregressive generation.
+  rpc InferStream (InferRequest) returns (stream InferToken);
+
+  // Forward activations to the next pipeline stage (peer-to-peer internal).
+  rpc ForwardActivation (ActivationChunk) returns (ActivationChunk);
+}
+
+message InferRequest {
+  string model_id = 1;
+  string prompt = 2;
+  GenerationParams params = 3;
+  string request_id = 4;
+}
+
+message GenerationParams {
+  uint32 max_tokens = 1;
+  float temperature = 2;
+  float top_p = 3;
+  uint32 top_k = 4;
+  float repetition_penalty = 5;
+  repeated string stop_sequences = 6;
+}
+
+message InferResponse {
+  string request_id = 1;
+  string model_id = 2;
+  string text = 3;
+  uint32 prompt_tokens = 4;
+  uint32 completion_tokens = 5;
+  float latency_ms = 6;
+}
+
+message InferToken {
+  string request_id = 1;
+  string token = 2;
+  bool is_final = 3;
+}
+
+// Internal message for pipeline-parallel inference between peers.
+message ActivationChunk {
+  string request_id = 1;
+  string model_id = 2;
+  uint32 layer_index = 3;       // which layer produced this
+  bytes tensor_data = 4;        // serialized tensor
+  repeated uint32 shape = 5;
+  string dtype = 6;             // "float32", "float16", "bfloat16"
+  openclaw.PeerId source_peer = 7;
+  openclaw.PeerId target_peer = 8;
+}

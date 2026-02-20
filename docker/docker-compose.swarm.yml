@@ -1,0 +1,115 @@
+# Local development swarm: 5 OpenClaw peers on the same Docker network.
+#
+# Peers discover each other via mDNS (all on the same bridge network).
+# Peer 1 acts as the initial bootstrap (NOT a master -- any peer can bootstrap).
+#
+# Usage:
+#   docker compose -f docker/docker-compose.swarm.yml up --build
+#   docker compose -f docker/docker-compose.swarm.yml down
+
+version: "3.9"
+
+services:
+  peer1:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.node
+    container_name: openclaw-peer1
+    command: >
+      openclaw-node
+        --port 9000
+        --api-port 50051
+        --gpu-memory-mb 0
+        --accelerator cpu
+        --heartbeat-interval-secs 5
+    ports:
+      - "9001:9000"
+      - "50061:50051"
+    networks:
+      - openclaw-net
+    environment:
+      - RUST_LOG=info
+
+  peer2:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.node
+    container_name: openclaw-peer2
+    command: >
+      openclaw-node
+        --port 9000
+        --api-port 50051
+        --gpu-memory-mb 0
+        --accelerator cpu
+        --heartbeat-interval-secs 5
+    ports:
+      - "9002:9000"
+      - "50062:50051"
+    networks:
+      - openclaw-net
+    depends_on:
+      - peer1
+
+  peer3:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.node
+    container_name: openclaw-peer3
+    command: >
+      openclaw-node
+        --port 9000
+        --api-port 50051
+        --gpu-memory-mb 8192
+        --accelerator cuda
+        --heartbeat-interval-secs 5
+    ports:
+      - "9003:9000"
+      - "50063:50051"
+    networks:
+      - openclaw-net
+    depends_on:
+      - peer1
+
+  peer4:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.node
+    container_name: openclaw-peer4
+    command: >
+      openclaw-node
+        --port 9000
+        --api-port 50051
+        --gpu-memory-mb 8192
+        --accelerator cuda
+        --heartbeat-interval-secs 5
+    ports:
+      - "9004:9000"
+      - "50064:50051"
+    networks:
+      - openclaw-net
+    depends_on:
+      - peer1
+
+  peer5:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.node
+    container_name: openclaw-peer5
+    command: >
+      openclaw-node
+        --port 9000
+        --api-port 50051
+        --gpu-memory-mb 16384
+        --accelerator cuda
+        --heartbeat-interval-secs 5
+    ports:
+      - "9005:9000"
+      - "50065:50051"
+    networks:
+      - openclaw-net
+    depends_on:
+      - peer1
+
+networks:
+  openclaw-net:
+    driver: bridge

@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenClaw - The People's AI</title>
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --surface: #12121a;
+            --surface2: #1a1a26;
+            --border: #2a2a3a;
+            --text: #e0e0ec;
+            --muted: #8888a0;
+            --accent: #7c6bf0;
+            --accent2: #a78bfa;
+            --green: #34d399;
+            --orange: #fb923c;
+            --pink: #f472b6;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        /* ---- NAV ---- */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 100;
+            background: rgba(10, 10, 15, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 2rem;
+        }
+        nav .inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+        nav .logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--accent2);
+        }
+        nav .logo span { color: var(--text); }
+        nav a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-left: 2rem;
+            transition: color 0.2s;
+        }
+        nav a:hover { color: var(--text); }
+
+        /* ---- HERO ---- */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 6rem 2rem 4rem;
+            position: relative;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                radial-gradient(ellipse 60% 50% at 50% 0%, rgba(124, 107, 240, 0.12) 0%, transparent 70%),
+                radial-gradient(ellipse 40% 40% at 70% 60%, rgba(167, 139, 250, 0.06) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .hero .badge {
+            display: inline-block;
+            padding: 0.35rem 1rem;
+            border-radius: 100px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            font-size: 0.8rem;
+            color: var(--accent2);
+            margin-bottom: 2rem;
+            letter-spacing: 0.03em;
+        }
+        .hero h1 {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+            max-width: 800px;
+            margin-bottom: 1.5rem;
+        }
+        .hero h1 .highlight {
+            background: linear-gradient(135deg, var(--accent), var(--accent2), var(--pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--muted);
+            max-width: 620px;
+            margin-bottom: 2.5rem;
+        }
+        .hero .cta-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem 1.8rem;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #9061f0);
+            color: #fff;
+            box-shadow: 0 4px 24px rgba(124, 107, 240, 0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 32px rgba(124, 107, 240, 0.45);
+        }
+        .btn-secondary {
+            background: var(--surface2);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+        .btn-secondary:hover { background: var(--border); }
+
+        /* ---- SECTION SHARED ---- */
+        section { padding: 6rem 2rem; }
+        .container { max-width: 1100px; margin: 0 auto; }
+        .section-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--accent2);
+            margin-bottom: 0.75rem;
+        }
+        .section-title {
+            font-size: clamp(1.8rem, 4vw, 2.8rem);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 1rem;
+        }
+        .section-subtitle {
+            font-size: 1.1rem;
+            color: var(--muted);
+            max-width: 640px;
+            margin-bottom: 3rem;
+        }
+
+        /* ---- PROBLEM ---- */
+        .problem { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+        .problem-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        .problem-card {
+            padding: 2rem;
+            border-radius: 14px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+        }
+        .problem-card .icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .problem-card h3 { font-size: 1.15rem; margin-bottom: 0.5rem; }
+        .problem-card p { color: var(--muted); font-size: 0.95rem; }
+
+        /* ---- HOW ---- */
+        .how-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+        .how-steps { display: flex; flex-direction: column; gap: 2rem; }
+        .step {
+            display: flex;
+            gap: 1.25rem;
+            align-items: flex-start;
+        }
+        .step-num {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--accent2);
+        }
+        .step h4 { font-size: 1.05rem; margin-bottom: 0.25rem; }
+        .step p { color: var(--muted); font-size: 0.9rem; }
+        .diagram-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.8rem;
+            line-height: 1.6;
+            color: var(--muted);
+            white-space: pre;
+            overflow-x: auto;
+        }
+        .diagram-box .accent { color: var(--accent2); }
+        .diagram-box .green { color: var(--green); }
+        .diagram-box .orange { color: var(--orange); }
+        .diagram-box .pink { color: var(--pink); }
+
+        /* ---- COMPARISON ---- */
+        .compare { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+        .compare-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        .compare-col {
+            padding: 2.5rem;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+        }
+        .compare-col.old { background: rgba(251, 146, 60, 0.04); border-color: rgba(251, 146, 60, 0.2); }
+        .compare-col.new { background: rgba(124, 107, 240, 0.05); border-color: rgba(124, 107, 240, 0.3); }
+        .compare-col h3 {
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .compare-col ul { list-style: none; display: flex; flex-direction: column; gap: 0.75rem; }
+        .compare-col li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+            font-size: 0.95rem;
+            color: var(--muted);
+        }
+        .compare-col li::before {
+            flex-shrink: 0;
+            margin-top: 0.15rem;
+            font-size: 0.9rem;
+        }
+        .compare-col.old li::before { content: '~'; color: var(--orange); }
+        .compare-col.new li::before { content: '+'; color: var(--green); font-weight: 700; }
+
+        /* ---- EVOLVE ---- */
+        .evolve-feature {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+            margin-top: 3rem;
+        }
+        .evolve-feature .text h3 { font-size: 1.3rem; margin-bottom: 0.75rem; }
+        .evolve-feature .text p { color: var(--muted); font-size: 0.95rem; margin-bottom: 1rem; }
+        .evolve-pills { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .pill {
+            display: inline-block;
+            padding: 0.3rem 0.75rem;
+            border-radius: 100px;
+            font-size: 0.8rem;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            background: var(--surface);
+        }
+        .pill.g { border-color: rgba(52, 211, 153, 0.3); color: var(--green); }
+        .pill.p { border-color: rgba(244, 114, 182, 0.3); color: var(--pink); }
+        .pill.a { border-color: rgba(167, 139, 250, 0.3); color: var(--accent2); }
+
+        /* ---- CODE BLOCK ---- */
+        .code-block {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+        .code-header {
+            padding: 0.75rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+        .code-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: var(--border);
+        }
+        .code-body {
+            padding: 1.5rem;
+            font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+            font-size: 0.85rem;
+            line-height: 1.7;
+            overflow-x: auto;
+        }
+        .code-body .kw { color: var(--accent2); }
+        .code-body .fn { color: var(--green); }
+        .code-body .str { color: var(--orange); }
+        .code-body .cmt { color: #555568; }
+        .code-body .var { color: var(--text); }
+
+        /* ---- STATS ---- */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin: 3rem 0;
+        }
+        .stat {
+            text-align: center;
+            padding: 2rem 1rem;
+            border-radius: 14px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+        }
+        .stat .number {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent2), var(--pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .stat .label { font-size: 0.85rem; color: var(--muted); margin-top: 0.25rem; }
+
+        /* ---- CTA BOTTOM ---- */
+        .bottom-cta {
+            text-align: center;
+            padding: 8rem 2rem;
+            position: relative;
+        }
+        .bottom-cta::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(ellipse 50% 60% at 50% 100%, rgba(124, 107, 240, 0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .bottom-cta h2 {
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 1rem;
+        }
+        .bottom-cta p {
+            color: var(--muted);
+            font-size: 1.15rem;
+            max-width: 550px;
+            margin: 0 auto 2.5rem;
+        }
+
+        /* ---- FOOTER ---- */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 3rem 2rem;
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.85rem;
+        }
+
+        /* ---- RESPONSIVE ---- */
+        @media (max-width: 768px) {
+            .how-grid, .compare-grid, .evolve-feature { grid-template-columns: 1fr; }
+            .stats-bar { grid-template-columns: 1fr 1fr; }
+            nav a { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="inner">
+        <div class="logo"><span>Open</span>Claw</div>
+        <div>
+            <a href="#problem">Why</a>
+            <a href="#how">How</a>
+            <a href="#evolve">Evolve</a>
+            <a href="#join">Join</a>
+            <a href="https://github.com/laarisyko/move_to_archive">GitHub</a>
+        </div>
+    </div>
+</nav>
+
+<!-- ======== HERO ======== -->
+<section class="hero">
+    <div class="badge">No corporation. No master node. Just us.</div>
+    <h1>AI that belongs to <span class="highlight">everyone.</span></h1>
+    <p>
+        OpenClaw is a peer-to-peer network where your agents pool their
+        compute to train and run large language models together &mdash; with
+        no central server, no single owner, and no permission needed.
+    </p>
+    <div class="cta-group">
+        <a href="#join" class="btn btn-primary">Contribute your compute</a>
+        <a href="#how" class="btn btn-secondary">See how it works</a>
+    </div>
+</section>
+
+<!-- ======== PROBLEM ======== -->
+<section class="problem" id="problem">
+    <div class="container">
+        <div class="section-label">The problem</div>
+        <div class="section-title">Today's AI is controlled by the few.</div>
+        <div class="section-subtitle">
+            Training a frontier model costs hundreds of millions of dollars and
+            requires massive centralized data centers. That means a handful of
+            companies decide what AI can do, who gets access, and what it learns.
+        </div>
+        <div class="problem-grid">
+            <div class="problem-card">
+                <div class="icon" style="background: rgba(251, 146, 60, 0.1);">
+                    <span style="color: var(--orange);">&#x1F3E2;</span>
+                </div>
+                <h3>Concentrated power</h3>
+                <p>A few corporations control the most capable AI models. They choose the training data, the safety filters, and who gets API access.</p>
+            </div>
+            <div class="problem-card">
+                <div class="icon" style="background: rgba(244, 114, 182, 0.1);">
+                    <span style="color: var(--pink);">&#x1F512;</span>
+                </div>
+                <h3>Walled gardens</h3>
+                <p>Even "open-weight" models were trained behind closed doors. You can use the result but have zero say in what it becomes next.</p>
+            </div>
+            <div class="problem-card">
+                <div class="icon" style="background: rgba(124, 107, 240, 0.1);">
+                    <span style="color: var(--accent2);">&#x26A1;</span>
+                </div>
+                <h3>Wasted compute</h3>
+                <p>Millions of GPUs around the world sit idle most of the time &mdash; gaming rigs, research clusters, cloud instances. That is enough to train frontier models, if we could coordinate.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ======== HOW ======== -->
+<section id="how">
+    <div class="container">
+        <div class="section-label">The solution</div>
+        <div class="section-title">A swarm that trains itself.</div>
+        <div class="section-subtitle">
+            OpenClaw turns thousands of independent machines into one collective
+            brain. No master node. No central server. Just peers talking to peers.
+        </div>
+        <div class="how-grid">
+            <div class="how-steps">
+                <div class="step">
+                    <div class="step-num">1</div>
+                    <div>
+                        <h4>Your agent joins the swarm</h4>
+                        <p>Three lines of Python. Your machine connects to nearby peers via a distributed hash table &mdash; the same technology that powers BitTorrent.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-num">2</div>
+                    <div>
+                        <h4>The model is split across peers</h4>
+                        <p>No single machine needs to hold the full model. Each peer holds a slice. Inference flows through the pipeline like a relay race.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-num">3</div>
+                    <div>
+                        <h4>Training happens together</h4>
+                        <p>Any peer can start a training round. Others join voluntarily. Gradients are shared in a ring &mdash; no server in the middle collecting them.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-num">4</div>
+                    <div>
+                        <h4>Everyone verifies the result</h4>
+                        <p>After each round, every peer independently checks a cryptographic fingerprint of the weights. If they match, the round succeeded. No trust required.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="diagram-box"><span class="accent">  Peer A</span>          <span class="green">Peer B</span>          <span class="orange">Peer C</span>          <span class="pink">Peer D</span>
+ <span class="accent">+--------+</span>      <span class="green">+--------+</span>      <span class="orange">+--------+</span>      <span class="pink">+--------+</span>
+ <span class="accent">| Layers |</span>&lt;----&gt;<span class="green">| Layers |</span>&lt;----&gt;<span class="orange">| Layers |</span>&lt;----&gt;<span class="pink">| Layers |</span>
+ <span class="accent">|  0-5   |</span>      <span class="green">|  6-11  |</span>      <span class="orange">| 12-17  |</span>      <span class="pink">| 18-23  |</span>
+ <span class="accent">+--------+</span>      <span class="green">+--------+</span>      <span class="orange">+--------+</span>      <span class="pink">+--------+</span>
+     ^                ^                ^                ^
+     |                |                |                |
+     v                v                v                v
+ <span class="accent">+----------------------------------------------------------+</span>
+ <span class="accent">|</span>            P2P Network (no master)                     <span class="accent">|</span>
+ <span class="accent">|</span>  DHT discovery / gossip / encrypted connections        <span class="accent">|</span>
+ <span class="accent">+----------------------------------------------------------+</span>
+
+ <span class="green">Any peer can propose.</span>  <span class="orange">Everyone votes.</span>  <span class="pink">Math decides.</span></div>
+        </div>
+    </div>
+</section>
+
+<!-- ======== COMPARISON ======== -->
+<section class="compare" id="compare">
+    <div class="container">
+        <div class="section-label">Old world vs. new world</div>
+        <div class="section-title">Why decentralized wins.</div>
+        <div class="section-subtitle">
+            Centralized training is a bottleneck. Decentralized training is an unstoppable force.
+        </div>
+        <div class="compare-grid">
+            <div class="compare-col old">
+                <h3><span style="color: var(--orange);">&#x26D4;</span> Centralized AI</h3>
+                <ul>
+                    <li>One company controls the model</li>
+                    <li>Single point of failure</li>
+                    <li>Requires $100M+ data centers</li>
+                    <li>Access gated by API keys and pricing</li>
+                    <li>Architecture decided by a small team</li>
+                    <li>Can be shut down, censored, or rug-pulled</li>
+                </ul>
+            </div>
+            <div class="compare-col new">
+                <h3><span style="color: var(--green);">&#x2714;</span> OpenClaw</h3>
+                <ul>
+                    <li>The community owns the model collectively</li>
+                    <li>No single point of failure &mdash; peers come and go freely</li>
+                    <li>Runs on hardware people already have</li>
+                    <li>Open to anyone, no permission needed</li>
+                    <li>Architecture evolves through collective voting</li>
+                    <li>Unstoppable &mdash; as long as peers exist, the network lives</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ======== EVOLVE ======== -->
+<section id="evolve">
+    <div class="container">
+        <div class="section-label">Something new</div>
+        <div class="section-title">The model evolves itself &mdash; together.</div>
+        <div class="section-subtitle">
+            OpenClaw doesn't just train weights. The swarm can collaboratively
+            change the model's architecture. Add layers, widen dimensions, swap
+            activations &mdash; all decided by democratic vote.
+        </div>
+        <div class="evolve-feature">
+            <div class="text">
+                <h3>Propose &rarr; Evaluate &rarr; Vote &rarr; Evolve</h3>
+                <p>
+                    Any agent can propose a structural mutation. Every peer independently
+                    tests it on their local data. If a majority sees improvement, the
+                    mutation is accepted and weights are migrated automatically. No
+                    committee. No bureaucracy. Just results.
+                </p>
+                <p>
+                    This is neural architecture search running on a decentralized swarm &mdash;
+                    something that has never been done before.
+                </p>
+                <div class="evolve-pills">
+                    <span class="pill g">Add layers</span>
+                    <span class="pill a">Widen dimensions</span>
+                    <span class="pill p">Swap activations</span>
+                    <span class="pill">Skip connections</span>
+                    <span class="pill g">Remove bottlenecks</span>
+                </div>
+            </div>
+            <div class="code-block">
+                <div class="code-header">
+                    <div class="code-dot"></div>
+                    <div class="code-dot"></div>
+                    <div class="code-dot"></div>
+                    evolve.py
+                </div>
+                <div class="code-body"><span class="kw">from</span> <span class="var">openclaw_sdk</span> <span class="kw">import</span> <span class="var">Agent</span>
+
+<span class="cmt"># Join the swarm.</span>
+<span class="var">agent</span> = <span class="fn">Agent</span>(<span class="var">bootstrap</span>=<span class="str">"/ip4/.../p2p/Qm..."</span>)
+<span class="var">agent</span>.<span class="fn">contribute</span>(<span class="var">gpu_memory</span>=<span class="str">"8GB"</span>)
+
+<span class="cmt"># Propose: make the model deeper.</span>
+<span class="var">agent</span>.<span class="fn">evolve</span>(
+    <span class="var">model</span>=<span class="str">"openclaw-7b"</span>,
+    <span class="var">mutation_type</span>=<span class="str">"add_layer"</span>,
+    <span class="var">position</span>=<span class="var">12</span>,
+    <span class="var">layer_type</span>=<span class="str">"attention"</span>,
+    <span class="var">input_dim</span>=<span class="var">4096</span>,
+    <span class="var">output_dim</span>=<span class="var">4096</span>,
+)
+
+<span class="cmt"># The swarm votes. If approved,
+# weights migrate automatically.</span></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ======== STATS ======== -->
+<section style="padding-top: 2rem; padding-bottom: 2rem;">
+    <div class="container">
+        <div class="stats-bar">
+            <div class="stat">
+                <div class="number">0</div>
+                <div class="label">Master nodes</div>
+            </div>
+            <div class="stat">
+                <div class="number">3</div>
+                <div class="label">Lines to join</div>
+            </div>
+            <div class="stat">
+                <div class="number">&infin;</div>
+                <div class="label">Peers supported</div>
+            </div>
+            <div class="stat">
+                <div class="number">MIT</div>
+                <div class="label">License</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ======== JOIN ======== -->
+<section id="join">
+    <div class="container">
+        <div class="section-label">Get started</div>
+        <div class="section-title">Join in 30 seconds.</div>
+        <div class="section-subtitle">
+            If you have a machine with a GPU (or even just a CPU), you can contribute.
+            Every peer makes the swarm stronger.
+        </div>
+        <div class="how-grid">
+            <div class="code-block">
+                <div class="code-header">
+                    <div class="code-dot"></div>
+                    <div class="code-dot"></div>
+                    <div class="code-dot"></div>
+                    terminal
+                </div>
+                <div class="code-body"><span class="cmt"># Install the SDK</span>
+<span class="var">$</span> pip install openclaw-sdk
+
+<span class="cmt"># Join the network</span>
+<span class="var">$</span> openclaw join --gpu-memory 8GB
+
+<span class="cmt"># Or from Python:</span>
+<span class="kw">from</span> <span class="var">openclaw_sdk</span> <span class="kw">import</span> <span class="var">Agent</span>
+
+<span class="var">agent</span> = <span class="fn">Agent</span>()
+<span class="var">agent</span>.<span class="fn">connect</span>()
+<span class="var">agent</span>.<span class="fn">contribute</span>(<span class="var">gpu_memory</span>=<span class="str">"8GB"</span>)
+
+<span class="cmt"># Run inference on the community model</span>
+<span class="var">result</span> = <span class="var">agent</span>.<span class="fn">infer</span>(
+    <span class="var">model</span>=<span class="str">"openclaw-7b"</span>,
+    <span class="var">prompt</span>=<span class="str">"Explain quantum entanglement"</span>,
+)
+<span class="fn">print</span>(<span class="var">result</span>)</div>
+            </div>
+            <div>
+                <div class="step" style="margin-bottom: 2rem;">
+                    <div class="step-num" style="background: rgba(52, 211, 153, 0.1); border-color: rgba(52, 211, 153, 0.3); color: var(--green);">&#x2713;</div>
+                    <div>
+                        <h4>Any hardware works</h4>
+                        <p>NVIDIA GPU, AMD GPU, Apple Silicon, or plain CPU. The network adapts to what you have. Even a laptop helps.</p>
+                    </div>
+                </div>
+                <div class="step" style="margin-bottom: 2rem;">
+                    <div class="step-num" style="background: rgba(52, 211, 153, 0.1); border-color: rgba(52, 211, 153, 0.3); color: var(--green);">&#x2713;</div>
+                    <div>
+                        <h4>Come and go freely</h4>
+                        <p>No commitment required. Contribute when your machine is idle, disconnect when you need it. The network handles churn gracefully.</p>
+                    </div>
+                </div>
+                <div class="step" style="margin-bottom: 2rem;">
+                    <div class="step-num" style="background: rgba(52, 211, 153, 0.1); border-color: rgba(52, 211, 153, 0.3); color: var(--green);">&#x2713;</div>
+                    <div>
+                        <h4>Use what you help build</h4>
+                        <p>Every contributor gets full access to the model for inference. The more you contribute, the higher your reputation &mdash; and priority &mdash; in the network.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-num" style="background: rgba(52, 211, 153, 0.1); border-color: rgba(52, 211, 153, 0.3); color: var(--green);">&#x2713;</div>
+                    <div>
+                        <h4>Shape the model's future</h4>
+                        <p>Propose architectural changes, vote on others' proposals, and steer the direction of a model that millions of people use. Your voice counts.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ======== BOTTOM CTA ======== -->
+<section class="bottom-cta">
+    <h2>The best AI should be built by all of us.</h2>
+    <p>
+        Every GPU you contribute makes the community's model smarter. Every vote
+        you cast shapes its architecture. This is AI without gatekeepers.
+    </p>
+    <div class="cta-group" style="justify-content: center;">
+        <a href="https://github.com/laarisyko/move_to_archive" class="btn btn-primary">
+            View on GitHub
+        </a>
+        <a href="#join" class="btn btn-secondary">
+            Start contributing
+        </a>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        OpenClaw is open source under the MIT License.<br>
+        No corporation. No master. Just peers.
+    </div>
+</footer>
+
+</body>
+</html>

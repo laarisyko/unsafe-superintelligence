@@ -1,0 +1,161 @@
+syntax = "proto3";
+
+package openclaw;
+
+// Unique identifier for a peer in the network.
+message PeerId {
+  bytes id = 1;
+}
+
+// Heartbeat broadcast via gossipsub so peers know who is alive.
+message Heartbeat {
+  PeerId peer_id = 1;
+  uint64 timestamp_ms = 2;
+  PeerCapacity capacity = 3;
+  float current_load = 4;  // 0.0 – 1.0
+}
+
+// Advertised compute capacity of a peer.
+message PeerCapacity {
+  uint64 gpu_memory_mb = 1;
+  uint64 ram_mb = 2;
+  uint32 cpu_cores = 3;
+  string accelerator_type = 4;  // "cpu", "cuda", "rocm", "tpu"
+}
+
+// Entry in the CRDT shard map – which peer holds which model layers.
+message ShardAssignment {
+  string model_id = 1;
+  uint32 layer_start = 2;  // inclusive
+  uint32 layer_end = 3;    // exclusive
+  PeerId peer_id = 4;
+  uint64 version = 5;      // lamport timestamp for CRDT ordering
+}
+
+// The full shard map replicated across peers.
+message ShardMap {
+  string model_id = 1;
+  repeated ShardAssignment assignments = 2;
+  uint64 version = 3;
+}
+
+// Wrapper envelope for all gossipsub messages.
+message GossipMessage {
+  oneof payload {
+    Heartbeat heartbeat = 1;
+    ShardMap shard_map_update = 2;
+    TrainingProposal training_proposal = 3;
+    TrainingJoin training_join = 4;
+    GradientReady gradient_ready = 5;
+    CheckpointAnnounce checkpoint_announce = 6;
+    ArchitectureProposal architecture_proposal = 7;
+    ArchitectureVote architecture_vote = 8;
+  }
+}
+
+// ---- Training protocol messages (see training.proto for service) ----
+
+message TrainingProposal {
+  string round_id = 1;
+  string model_id = 2;
+  HyperParams hyper_params = 3;
+  string data_manifest_cid = 4;  // content-addressed data manifest
+  PeerId proposer = 5;
+  uint64 deadline_ms = 6;
+}
+
+message TrainingJoin {
+  string round_id = 1;
+  PeerId peer_id = 2;
+  PeerCapacity capacity = 3;
+}
+
+message HyperParams {
+  float learning_rate = 1;
+  uint32 batch_size = 2;
+  uint32 num_steps = 3;
+  float weight_decay = 4;
+  string optimizer = 5;  // "adam", "sgd", "adamw"
+}
+
+message GradientReady {
+  string round_id = 1;
+  PeerId peer_id = 2;
+  bytes merkle_root = 3;  // merkle root of local gradients
+  uint64 num_samples = 4;
+}
+
+message CheckpointAnnounce {
+  string round_id = 1;
+  PeerId peer_id = 2;
+  bytes weights_merkle_root = 3;
+  string checkpoint_cid = 4;  // content-addressed checkpoint location
+}
+
+// ---- Architecture evolution messages ----
+
+// A gene describing one layer in the model architecture.
+message LayerGene {
+  string layer_type = 1;       // "linear", "attention", "norm", "activation", etc.
+  uint32 input_dim = 2;
+  uint32 output_dim = 3;
+  uint32 num_heads = 4;
+  string activation = 5;
+  float dropout = 6;
+  int32 skip_target = 7;       // -1 = none
+  string gene_id = 8;
+}
+
+// Full model architecture genome -- serializable, content-addressed.
+message ArchitectureGenome {
+  string model_id = 1;
+  repeated LayerGene genes = 2;
+  uint32 generation = 3;
+  string parent_hash = 4;
+  string genome_hash = 5;       // SHA-256 content hash
+  uint64 estimated_params = 6;
+}
+
+// A mutation that transforms one genome into another.
+message ArchitectureMutation {
+  string mutation_type = 1;     // "add_layer", "remove_layer", "widen_layer", etc.
+  uint32 position = 2;
+  LayerGene gene = 3;           // for add_layer
+  uint32 new_output_dim = 4;    // for widen_layer
+  string new_activation = 5;    // for swap_activation
+  uint32 source_position = 6;   // for insert_skip
+  uint32 target_position = 7;   // for insert_skip
+}
+
+// Proposal to change the model architecture (broadcast via gossipsub).
+message ArchitectureProposal {
+  string proposal_id = 1;
+  PeerId proposer = 2;
+  string model_id = 3;
+  string current_genome_hash = 4;
+  ArchitectureMutation mutation = 5;
+  ArchitectureGenome new_genome = 6;
+  float proposer_fitness = 7;
+  uint64 timestamp_ms = 8;
+  uint64 vote_deadline_ms = 9;
+}
+
+// A peer's vote on an architecture proposal.
+message ArchitectureVote {
+  string proposal_id = 1;
+  PeerId voter = 2;
+  string decision = 3;          // "approve", "reject", "abstain"
+  float measured_fitness = 4;
+  uint32 eval_samples = 5;
+  uint64 timestamp_ms = 6;
+}
+
+// Reputation record maintained locally by each peer.
+message PeerReputation {
+  PeerId peer_id = 1;
+  float score = 2;            // 0.0 – 1.0
+  uint32 rounds_participated = 3;
+  uint32 rounds_completed = 4;
+  uint32 rounds_failed = 5;
+  uint64 last_seen_ms = 6;
+}

@@ -1,0 +1,63 @@
+# Multi-stage build for SSSI node.
+#
+# Stage 1: Build the Rust P2P node.
+# Stage 2: Build the Python engine.
+# Stage 3: Combine into a minimal runtime image.
+
+# --- Stage 1: Rust build ---
+FROM rust:1.75-bookworm AS rust-builder
+
+WORKDIR /build
+COPY node/ ./node/
+COPY proto/ ./proto/
+
+RUN apt-get update && apt-get install -y protobuf-compiler && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build/node
+RUN mkdir -p src/generated && \
+    cargo build --release 2>/dev/null || echo "Build requires network for deps"
+
+# --- Stage 2: Python environment ---
+FROM python:3.11-slim-bookworm AS python-builder
+
+WORKDIR /build
+
+COPY engine/ ./engine/
+COPY agent-sdk/ ./agent-sdk/
+
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu && \
+    pip install --no-cache-dir ./engine ./agent-sdk
+
+# --- Stage 3: Runtime ---
+FROM python:3.11-slim-bookworm
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends tini && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy Rust binary (if built).
+COPY --from=rust-builder /build/node/target/release/openclaw-node /usr/local/bin/openclaw-node 2>/dev/null || true
+
+# Copy Python packages.
+COPY --from=python-builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=python-builder /usr/local/bin/sssi /usr/local/bin/sssi 2>/dev/null || true
+
+# Copy source for development.
+COPY engine/ /app/engine/
+COPY agent-sdk/ /app/agent-sdk/
+COPY proto/ /app/proto/
+
+WORKDIR /app
+
+# P2P port.
+EXPOSE 9000
+# API port.
+EXPOSE 50051
+# Bridge port.
+EXPOSE 50052
+
+ENV RUST_LOG=info
+ENV PYTHONUNBUFFERED=1
+
+ENTRYPOINT ["tini", "--"]
+CMD ["openclaw-node", "--port", "9000", "--api-port", "50051"]

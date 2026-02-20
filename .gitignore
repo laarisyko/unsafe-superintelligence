@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+target/
+.env
+*.pt
+*.bin
+openclaw-data/
+node/src/generated/

@@ -1,0 +1,67 @@
+[package]
+name = "openclaw-node"
+version = "0.1.0"
+edition = "2021"
+description = "Decentralized P2P node for OpenClaw LLM network"
+license = "MIT"
+
+[[bin]]
+name = "openclaw-node"
+path = "src/main.rs"
+
+[dependencies]
+# Networking
+libp2p = { version = "0.53", features = [
+    "tokio",
+    "noise",
+    "tcp",
+    "yamux",
+    "gossipsub",
+    "kad",
+    "mdns",
+    "identify",
+    "autonat",
+    "relay",
+    "macros",
+] }
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+futures = "0.3"
+
+# Serialization
+prost = "0.12"
+prost-types = "0.12"
+tonic = "0.11"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+bincode = "1"
+
+# Crypto
+sha2 = "0.10"
+hmac = "0.12"
+rand = "0.8"
+ed25519-dalek = "2"
+
+# CRDT
+crdts = "7"
+
+# CLI
+clap = { version = "4", features = ["derive"] }
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Encoding
+base64 = "0.22"
+
+# Misc
+hex = "0.4"
+thiserror = "1"
+anyhow = "1"
+bytes = "1"
+
+[build-dependencies]
+tonic-build = "0.11"
+prost-build = "0.12"

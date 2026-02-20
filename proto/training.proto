@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package openclaw.training;
+
+import "messages.proto";
+
+// Peer-to-peer training coordination service.
+service TrainingService {
+  // Propose a new training round to a specific peer (supplement to gossip).
+  rpc ProposeRound (openclaw.TrainingProposal) returns (ProposeResponse);
+
+  // Exchange gradients during ring all-reduce.
+  rpc ExchangeGradients (GradientChunk) returns (GradientChunk);
+
+  // Stream gradient chunks for large models.
+  rpc StreamGradients (stream GradientChunk) returns (stream GradientChunk);
+
+  // Request a checkpoint or weight slice from a peer.
+  rpc GetCheckpoint (CheckpointRequest) returns (stream CheckpointChunk);
+
+  // Verify weight consistency with a peer.
+  rpc VerifyWeights (WeightVerifyRequest) returns (WeightVerifyResponse);
+}
+
+message ProposeResponse {
+  bool accepted = 1;
+  string reason = 2;
+}
+
+// A chunk of gradient data exchanged during ring all-reduce.
+message GradientChunk {
+  string round_id = 1;
+  uint32 shard_index = 2;      // which slice of the gradient ring
+  uint32 chunk_index = 3;      // chunk within the shard
+  uint32 total_chunks = 4;
+  bytes data = 5;              // compressed gradient data
+  string compression = 6;     // "none", "topk", "fp16", "topk+fp16"
+  openclaw.PeerId sender = 7;
+  uint32 ring_position = 8;   // sender's position in the all-reduce ring
+}
+
+message CheckpointRequest {
+  string model_id = 1;
+  string round_id = 2;
+  uint32 layer_start = 3;
+  uint32 layer_end = 4;
+}
+
+message CheckpointChunk {
+  string model_id = 1;
+  uint32 layer_index = 2;
+  uint32 chunk_index = 3;
+  uint32 total_chunks = 4;
+  bytes data = 5;
+}
+
+message WeightVerifyRequest {
+  string model_id = 1;
+  string round_id = 2;
+  bytes expected_merkle_root = 3;
+}
+
+message WeightVerifyResponse {
+  bool consistent = 1;
+  bytes actual_merkle_root = 2;
+  repeated uint32 divergent_layers = 3;
+}
