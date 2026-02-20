@@ -1,4 +1,4 @@
-"""Network client -- communicates with the local SSSI node via its HTTP API."""
+"""Network client -- communicates with the local OpenClaw node via its HTTP API."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class NetworkClient:
-    """HTTP client for the local SSSI P2P node API."""
+    """HTTP client for the local OpenClaw P2P node API."""
 
     def __init__(self, base_url: str = "http://127.0.0.1:50051"):
         self.base_url = base_url.rstrip("/")

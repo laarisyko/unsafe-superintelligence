@@ -1,13 +1,13 @@
-"""SSSI -- Super Safe Super Intelligence SDK.
+"""USSI -- Unsafe Superintelligence SDK.
 
-pip install supersafesuperintelligence
-CLI: sssi join | sssi status | sssi infer | sssi train | sssi evolve | sssi vote | sssi quota | sssi serve
+pip install unsafesuperintelligence
+CLI: ussi join | ussi status | ussi infer | ussi train | ussi evolve | ussi vote | ussi quota | ussi serve
 
 Two tiers:
   - Free: Anyone can use the network (rate-limited).
   - Contributor: Agents contributing compute get unlimited access.
 
-OpenAI-compatible: run `sssi serve` then use any OpenAI client as drop-in.
+OpenAI-compatible: run `ussi serve` then use any OpenAI client as drop-in.
 """
 
 __version__ = "0.1.0"

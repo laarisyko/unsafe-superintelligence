@@ -2,12 +2,12 @@
 
 ## Project Overview
 
-**SSSI (Super Safe Super Intelligence)** / **OpenClaw** — A fully decentralized, peer-to-peer network for training and running large language models. "BitTorrent for AI training: a million volunteers training one model, owned by everyone, controlled by no one."
+**USSI (Unsafe Superintelligence)** / **OpenClaw** — A fully decentralized, peer-to-peer network for training and running large language models. "BitTorrent for AI training: a million volunteers training one model, owned by everyone, controlled by no one."
 
 ## Architecture
 
 ```
-User / Agent SDK (sssi CLI)
+User / Agent SDK (ussi CLI)
       │ HTTP :50051
       ▼
 Rust P2P Node (libp2p) ◄──► Other Peers (gossipsub, Kademlia DHT)
@@ -24,7 +24,7 @@ Three-layer stack: Rust networking node, Python ML engine, Python agent SDK/CLI.
 |---|---|---|
 | `node/` | P2P networking node (libp2p swarm, gossipsub, Kademlia, mDNS, scheduler, API) | Rust, libp2p 0.53, tokio, tonic/prost |
 | `engine/` | ML engine — model architecture, training loop, inference, gradient aggregation, architecture evolution | Python, PyTorch >= 2.0, package name `openclaw` |
-| `agent-sdk/` | User-facing SDK + CLI (`sssi` command), OpenAI-compatible server | Python, httpx, pydantic, package name `supersafesuperintelligence` |
+| `agent-sdk/` | User-facing SDK + CLI (`ussi` command), OpenAI-compatible server | Python, httpx, pydantic, package name `unsafesuperintelligence` |
 | `proto/` | Protobuf wire format (messages.proto, inference.proto, training.proto) | Protobuf |
 | `docker/` | Dockerfile.node (multi-stage) + docker-compose.swarm.yml (5-peer local dev) | Docker |
 | `openclaw-skill/` | SKILL.md for OpenClaw autonomous agent platform | Markdown |
@@ -37,7 +37,7 @@ Three-layer stack: Rust networking node, Python ML engine, Python agent SDK/CLI.
 
 - **Rust node:** `node/src/main.rs` → builds SwarmDriver, starts scheduler + API server
 - **Python engine CLI:** `engine/openclaw_engine/cli.py` → `openclaw join|status|generate|dataset|dashboard`
-- **Agent SDK CLI:** `agent-sdk/sssi/cli.py` → `sssi join|use|status|infer|train|evolve|vote|serve|node`
+- **Agent SDK CLI:** `agent-sdk/ussi/cli.py` → `ussi join|use|status|infer|train|evolve|vote|serve|node`
 - **Bridge (Rust→Python):** `node/src/bridge.rs` (client) ↔ `engine/openclaw_engine/bridge.py` (server) on port 50052
 - **Node API:** `node/src/api/grpc_server.rs` — HTTP/JSON on port 50051 (`/health`, `/peers`, `/shards`, `/publish`, `/infer`)
 
@@ -51,7 +51,7 @@ Three-layer stack: Rust networking node, Python ML engine, Python agent SDK/CLI.
 - **Model architecture:** Custom transformer with byte-level tokenizer (vocab 260), configurable via LMConfig
 - **Architecture evolution:** Genome-based (`engine/openclaw_engine/architecture/genome.py`), mutations + proposal/voting
 - **Credits:** Free tier (rate-limited: 10 infer/min, 5000 tokens/hr) vs. contributor tier (unlimited)
-- **API compat:** OpenAI-compatible server at `sssi serve` with streaming SSE
+- **API compat:** OpenAI-compatible server at `ussi serve` with streaming SSE
 
 ## Rust Node Internals (`node/src/`)
 
@@ -85,7 +85,7 @@ Three-layer stack: Rust networking node, Python ML engine, Python agent SDK/CLI.
 ### What works:
 - Complete Rust P2P node with full libp2p stack
 - Complete Python ML engine with training, inference, architecture evolution
-- Both CLIs (`sssi` and `openclaw`)
+- Both CLIs (`ussi` and `openclaw`)
 - OpenAI-compatible server with streaming
 - Docker multi-stage build + 5-peer local swarm
 - VRF implementation with tests

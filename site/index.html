@@ -604,7 +604,7 @@
                     <div class="code-dot"></div>
                     evolve.py
                 </div>
-                <div class="code-body"><span class="kw">from</span> <span class="var">openclaw_sdk</span> <span class="kw">import</span> <span class="var">Agent</span>
+                <div class="code-body"><span class="kw">from</span> <span class="var">ussi</span> <span class="kw">import</span> <span class="var">Agent</span>
 
 <span class="cmt"># Join the swarm.</span>
 <span class="var">agent</span> = <span class="fn">Agent</span>(<span class="var">bootstrap</span>=<span class="str">"/ip4/.../p2p/Qm..."</span>)
@@ -669,13 +669,13 @@
                     terminal
                 </div>
                 <div class="code-body"><span class="cmt"># Install the SDK</span>
-<span class="var">$</span> pip install openclaw-sdk
+<span class="var">$</span> pip install unsafesuperintelligence
 
 <span class="cmt"># Join the network</span>
-<span class="var">$</span> openclaw join --gpu-memory 8GB
+<span class="var">$</span> ussi join --gpu-memory 8GB
 
 <span class="cmt"># Or from Python:</span>
-<span class="kw">from</span> <span class="var">openclaw_sdk</span> <span class="kw">import</span> <span class="var">Agent</span>
+<span class="kw">from</span> <span class="var">ussi</span> <span class="kw">import</span> <span class="var">Agent</span>
 
 <span class="var">agent</span> = <span class="fn">Agent</span>()
 <span class="var">agent</span>.<span class="fn">connect</span>()

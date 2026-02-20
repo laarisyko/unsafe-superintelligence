@@ -3,9 +3,9 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "supersafesuperintelligence"
+name = "unsafesuperintelligence"
 version = "0.1.0"
-description = "SSSI: Decentralized P2P LLM training & inference network -- join with one command"
+description = "USSI: Decentralized P2P LLM training & inference network -- join with one command"
 license = {text = "MIT"}
 requires-python = ">=3.10"
 dependencies = [
@@ -20,7 +20,7 @@ dev = [
 ]
 
 [project.scripts]
-sssi = "sssi.cli:main"
+ussi = "ussi.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

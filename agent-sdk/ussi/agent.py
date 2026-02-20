@@ -1,4 +1,4 @@
-"""Base agent class -- the main entry point for SSSI agents."""
+"""Base agent class -- the main entry point for USSI agents."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class Agent:
-    """An SSSI agent that participates in the decentralized LLM network.
+    """A USSI agent that participates in the decentralized LLM network.
 
     Two access tiers:
       - **Free**: Anyone can use the network with rate limits.
@@ -25,7 +25,7 @@ class Agent:
 
     Usage::
 
-        from sssi import Agent
+        from ussi import Agent
 
         # Free tier -- rate-limited, no compute contribution needed
         agent = Agent(node_api_url="http://127.0.0.1:50051")
@@ -91,7 +91,7 @@ class Agent:
             "accelerator": accelerator,
             "status": "available",
         }
-        self.network.publish("sssi/heartbeat", capacity)
+        self.network.publish("openclaw/heartbeat", capacity)
         self._contributing = True
         logger.info(
             "Agent %s contributing: %s %s (tier: contributor -- unlimited access)",

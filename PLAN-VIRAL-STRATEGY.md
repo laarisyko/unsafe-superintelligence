@@ -25,7 +25,7 @@ That's it. The node auto-discovers peers, downloads the current model state,
 and starts contributing training compute within 60 seconds.
 
 **Tasks:**
-- [ ] Package `openclaw` on PyPI (rename from `supersafesuperintelligence`)
+- [ ] Package `openclaw` on PyPI (rename from `unsafesuperintelligence`)
 - [ ] Auto-detect GPU (CUDA/ROCm/MPS) and CPU fallback
 - [ ] Bootstrap node list: hardcode 5-10 seed peers (run on cheap VPS instances)
 - [ ] Auto-download latest checkpoint from DHT on first join

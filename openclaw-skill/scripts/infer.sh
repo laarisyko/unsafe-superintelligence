@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run inference on a model via the SSSI network.
+# Run inference on a model via the USSI network.
 # Usage: infer.sh --model llama-7b --prompt "Your prompt"
 set -euo pipefail
-sssi infer "$@" --json
+ussi infer "$@" --json

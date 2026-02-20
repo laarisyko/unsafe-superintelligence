@@ -1,4 +1,4 @@
-# SSSI CLI Reference
+# USSI CLI Reference
 
 ## Global Flags
 
@@ -9,7 +9,7 @@
 
 ## Commands
 
-### `sssi join`
+### `ussi join`
 Join the P2P network and advertise compute.
 
 | Flag            | Default | Description                      |
@@ -18,22 +18,22 @@ Join the P2P network and advertise compute.
 | `--gpu-memory`  | 0       | GPU memory (e.g. "8GB")         |
 | `--accelerator` | cpu     | cpu, cuda, rocm, tpu             |
 
-### `sssi status`
+### `ussi status`
 Show node health and connection status.
 
-### `sssi peers`
+### `ussi peers`
 List connected peers as JSON array.
 
-### `sssi models`
+### `ussi models`
 List models available on the network.
 
-### `sssi rounds`
+### `ussi rounds`
 List active training rounds.
 
-### `sssi detect`
+### `ussi detect`
 Auto-detect local compute resources (GPU, CPU cores).
 
-### `sssi infer`
+### `ussi infer`
 Run inference on a network model.
 
 | Flag            | Default | Description                      |
@@ -43,7 +43,7 @@ Run inference on a network model.
 | `--max-tokens`  | 256     | Max tokens to generate           |
 | `--temperature` | 0.7     | Sampling temperature             |
 
-### `sssi train`
+### `ussi train`
 Propose/join decentralized training rounds.
 
 | Flag           | Default | Description                       |
@@ -53,7 +53,7 @@ Propose/join decentralized training rounds.
 | `--lr`         | 0.0001  | Learning rate                     |
 | `--batch-size` | 8       | Batch size                        |
 
-### `sssi evolve`
+### `ussi evolve`
 Propose an architecture mutation.
 
 | Flag           | Default  | Description                      |
@@ -65,7 +65,7 @@ Propose an architecture mutation.
 | `--activation` | ""       | Activation for swap_activation   |
 | `--layer-type` | linear   | Layer type for add_layer         |
 
-### `sssi vote`
+### `ussi vote`
 Vote on an architecture proposal.
 
 | Flag         | Default | Description                        |
@@ -74,7 +74,7 @@ Vote on an architecture proposal.
 | `--decision` | req     | approve, reject, abstain           |
 | `--fitness`  | 0.0     | Locally measured fitness score     |
 
-### `sssi node start`
+### `ussi node start`
 Start the local P2P node.
 
 | Flag              | Default | Description                    |
@@ -86,8 +86,8 @@ Start the local P2P node.
 | `--gpu-memory-mb` | 0       | GPU memory in MB               |
 | `--no-docker`     | false   | Use local binary, not Docker   |
 
-### `sssi node stop`
+### `ussi node stop`
 Stop the local P2P node.
 
-### `sssi node logs`
+### `ussi node logs`
 Print recent node logs.

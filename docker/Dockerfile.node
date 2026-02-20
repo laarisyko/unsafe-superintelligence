@@ -1,4 +1,4 @@
-# Multi-stage build for SSSI node.
+# Multi-stage build for USSI node.
 #
 # Stage 1: Build the Rust P2P node.
 # Stage 2: Build the Python engine.
@@ -40,7 +40,7 @@ COPY --from=rust-builder /build/node/target/release/openclaw-node /usr/local/bin
 
 # Copy Python packages.
 COPY --from=python-builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
-COPY --from=python-builder /usr/local/bin/sssi /usr/local/bin/sssi 2>/dev/null || true
+COPY --from=python-builder /usr/local/bin/ussi /usr/local/bin/ussi 2>/dev/null || true
 
 # Copy source for development.
 COPY engine/ /app/engine/

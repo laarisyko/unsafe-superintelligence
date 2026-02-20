@@ -195,7 +195,7 @@ openclaw-network/
 |   +-- pyproject.toml
 |
 |-- agent-sdk/                    # Python: OpenClaw agent SDK
-|   |-- openclaw_sdk/
+|   |-- ussi/
 |   |   |-- __init__.py
 |   |   |-- agent.py              #   Base agent class
 |   |   |-- network.py            #   Network join/leave API
@@ -260,7 +260,7 @@ openclaw-network/
 
 ### Phase 4: Agent SDK & Developer Experience
 
-- [ ] Python SDK: `openclaw_sdk` with simple API
+- [ ] Python SDK: `ussi` with simple API
 - [ ] Agent lifecycle: join network, contribute compute, leave gracefully
 - [ ] CLI tooling: `openclaw join`, `openclaw status`, `openclaw infer`
 - [ ] Docker compose for local development swarm
@@ -397,7 +397,7 @@ rings:
    all peers converge to the same weight state (verified by Merkle root).
 4. An OpenClaw agent can **join the network with 3 lines of Python**:
    ```python
-   from openclaw_sdk import Agent
+   from ussi import Agent
    agent = Agent(bootstrap="/ip4/203.0.113.1/tcp/9000/p2p/QmPeer...")
    agent.contribute(gpu_memory="8GB")
    ```

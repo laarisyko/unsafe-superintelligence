@@ -1,4 +1,4 @@
-"""Architecture evolution API for SSSI agents.
+"""Architecture evolution API for USSI agents.
 
 Lets agents propose architectural mutations, vote on proposals from other
 peers, and query the current genome of a model.
@@ -61,7 +61,7 @@ class ArchitectureEvolver:
             "mutation": mutation,
         }
 
-        self.network.publish("sssi/architecture", proposal)
+        self.network.publish("openclaw/architecture", proposal)
         self._proposals_sent.append(proposal_id)
         logger.info(
             "Proposed %s mutation for model %s (proposal: %s)",
@@ -83,7 +83,7 @@ class ArchitectureEvolver:
             "decision": decision,
             "measured_fitness": measured_fitness,
         }
-        self.network.publish("sssi/architecture", vote_msg)
+        self.network.publish("openclaw/architecture", vote_msg)
         logger.info("Voted %s on proposal %s", decision, proposal_id)
 
     def list_proposals(self) -> list:

@@ -1,4 +1,4 @@
-# SSSI (Super Safe Super Intelligence) -- OpenClaw Agent Integration Plan
+# USSI (Unsafe Superintelligence) -- OpenClaw Agent Integration Plan
 
 ## Context
 
@@ -113,7 +113,7 @@ to vote on a peer's architecture proposal.
 The skill scripts shell out to our `openclaw` CLI. The CLI needs to be
 complete and produce machine-readable (JSON) output. Changes needed:
 
-**a) CLI enhancements (`agent-sdk/openclaw_sdk/cli.py`)**
+**a) CLI enhancements (`agent-sdk/ussi/cli.py`)**
 
 Add these missing commands:
 - `openclaw node start` -- Start a P2P node (wraps Docker or binary)
@@ -128,7 +128,7 @@ for agent parsing).
 
 Add a global `--quiet` flag to suppress human-readable decoration.
 
-**b) Node management (`agent-sdk/openclaw_sdk/node_manager.py` -- new file)**
+**b) Node management (`agent-sdk/ussi/node_manager.py` -- new file)**
 
 A helper that manages the local P2P node lifecycle:
 - `start(port, api_port, bootstrap, docker=True)` -- Start node via Docker

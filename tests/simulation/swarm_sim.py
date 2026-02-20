@@ -53,7 +53,7 @@ def run_simulation(
     hierarchical: bool = False,
     cluster_size: int = 1000,
 ):
-    print(f"=== SSSI Swarm Simulation ===")
+    print(f"=== USSI Swarm Simulation ===")
     print(f"Peers: {n_peers}, Layers: {n_layers}, Hidden dim: {hidden_dim}")
     print(f"Training: {training_rounds} rounds x {training_steps} steps")
     mode = "hierarchical" if hierarchical else "flat ring"
@@ -206,7 +206,7 @@ def run_scaling_analysis():
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="SSSI swarm simulation")
+    parser = argparse.ArgumentParser(description="USSI swarm simulation")
     parser.add_argument("--peers", type=int, default=4, help="Number of simulated peers")
     parser.add_argument("--layers", type=int, default=8, help="Number of model layers")
     parser.add_argument("--hidden-dim", type=int, default=64, help="Hidden dimension")

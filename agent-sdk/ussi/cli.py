@@ -1,4 +1,4 @@
-"""CLI for SSSI: sssi join | status | infer | train | evolve | vote | node | detect | models | rounds | quota | serve"""
+"""CLI for USSI: ussi join | status | infer | train | evolve | vote | node | detect | models | rounds | quota | serve"""
 
 from __future__ import annotations
 
@@ -22,8 +22,8 @@ def _out(data, as_json: bool = False):
 
 def main():
     parser = argparse.ArgumentParser(
-        prog="sssi",
-        description="SSSI: Super Safe Super Intelligence -- Decentralized LLM Network",
+        prog="ussi",
+        description="USSI: Unsafe Superintelligence -- Decentralized LLM Network",
     )
     parser.add_argument("--json", action="store_true", help="Output machine-readable JSON")
     parser.add_argument(
@@ -31,48 +31,48 @@ def main():
     )
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
-    # --- sssi join ---
+    # --- ussi join ---
     join_p = subparsers.add_parser("join", help="Join the P2P network and contribute compute (unlimited access)")
     join_p.add_argument("--bootstrap", "-b", help="Bootstrap peer multiaddress", default=None)
     join_p.add_argument("--gpu-memory", default="0", help="GPU memory to contribute (e.g. '8GB')")
     join_p.add_argument("--accelerator", default="cpu", choices=["cpu", "cuda", "rocm", "tpu"])
 
-    # --- sssi use ---
+    # --- ussi use ---
     subparsers.add_parser("use", help="Connect as free-tier user (rate-limited, no compute contribution)")
 
-    # --- sssi status ---
+    # --- ussi status ---
     subparsers.add_parser("status", help="Check node and network status (includes tier info)")
 
-    # --- sssi quota ---
+    # --- ussi quota ---
     subparsers.add_parser("quota", help="Check your current rate limits and contribution credits")
 
-    # --- sssi peers ---
+    # --- ussi peers ---
     subparsers.add_parser("peers", help="List known peers")
 
-    # --- sssi models ---
+    # --- ussi models ---
     subparsers.add_parser("models", help="List available models on the network")
 
-    # --- sssi rounds ---
+    # --- ussi rounds ---
     subparsers.add_parser("rounds", help="List active training rounds")
 
-    # --- sssi detect ---
+    # --- ussi detect ---
     subparsers.add_parser("detect", help="Auto-detect local compute resources")
 
-    # --- sssi infer ---
+    # --- ussi infer ---
     infer_p = subparsers.add_parser("infer", help="Run inference (free: 10 req/min, contributor: unlimited)")
     infer_p.add_argument("--model", "-m", required=True, help="Model ID")
     infer_p.add_argument("--prompt", "-p", required=True, help="Input prompt")
     infer_p.add_argument("--max-tokens", type=int, default=256)
     infer_p.add_argument("--temperature", type=float, default=0.7)
 
-    # --- sssi train ---
+    # --- ussi train ---
     train_p = subparsers.add_parser("train", help="Join training (free: 2 rounds/day, contributor: unlimited)")
     train_p.add_argument("--model", "-m", required=True, help="Model ID")
     train_p.add_argument("--rounds", "-r", type=int, default=1)
     train_p.add_argument("--lr", type=float, default=1e-4, help="Learning rate")
     train_p.add_argument("--batch-size", type=int, default=8)
 
-    # --- sssi evolve ---
+    # --- ussi evolve ---
     evolve_p = subparsers.add_parser("evolve", help="Propose mutation (free: 3/day, contributor: unlimited)")
     evolve_p.add_argument("--model", "-m", required=True, help="Model ID")
     evolve_p.add_argument(
@@ -84,13 +84,13 @@ def main():
     evolve_p.add_argument("--activation", default="", help="Activation function for swap_activation")
     evolve_p.add_argument("--layer-type", default="linear", help="Layer type for add_layer")
 
-    # --- sssi vote ---
+    # --- ussi vote ---
     vote_p = subparsers.add_parser("vote", help="Vote on a proposal (always free, earns credits)")
     vote_p.add_argument("--proposal", required=True, help="Proposal ID")
     vote_p.add_argument("--decision", required=True, choices=["approve", "reject", "abstain"])
     vote_p.add_argument("--fitness", type=float, default=0.0, help="Measured fitness score")
 
-    # --- sssi node ---
+    # --- ussi node ---
     node_p = subparsers.add_parser("node", help="Manage the local P2P node")
     node_sub = node_p.add_subparsers(dest="node_action")
 
@@ -105,7 +105,7 @@ def main():
     node_sub.add_parser("stop", help="Stop the P2P node")
     node_sub.add_parser("logs", help="Show node logs")
 
-    # --- sssi serve ---
+    # --- ussi serve ---
     serve_p = subparsers.add_parser("serve", help="Start OpenAI-compatible API server (drop-in replacement)")
     serve_p.add_argument("--port", type=int, default=8000, help="Port to listen on")
     serve_p.add_argument("--host", default="0.0.0.0", help="Host to bind to")
@@ -160,7 +160,7 @@ def main():
             print("  Voting:    unlimited (earns credits)")
             print()
             print("Tip: contribute compute to unlock unlimited access:")
-            print("  sssi join --gpu-memory 8GB --accelerator cuda")
+            print("  ussi join --gpu-memory 8GB --accelerator cuda")
         _out(result, use_json)
 
     elif args.command == "status":
@@ -218,7 +218,7 @@ def main():
             else:
                 print(f"ERROR: {e}", file=sys.stderr)
                 print("\nContribute compute to unlock unlimited access:", file=sys.stderr)
-                print("  sssi join --gpu-memory 8GB --accelerator cuda", file=sys.stderr)
+                print("  ussi join --gpu-memory 8GB --accelerator cuda", file=sys.stderr)
             sys.exit(1)
 
     elif args.command == "train":

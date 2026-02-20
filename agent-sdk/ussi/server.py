@@ -1,11 +1,11 @@
-"""OpenAI-compatible HTTP server for the SSSI network.
+"""OpenAI-compatible HTTP server for the OpenClaw network.
 
 Serves the same endpoints as the OpenAI API so that any OpenAI SDK,
-LangChain, LlamaIndex, or other tool can use SSSI as a drop-in replacement.
+LangChain, LlamaIndex, or other tool can use USSI as a drop-in replacement.
 
 Usage:
-    sssi serve                          # Start on port 8000
-    sssi serve --port 11434             # Custom port
+    ussi serve                          # Start on port 8000
+    ussi serve --port 11434             # Custom port
 
 Then in any OpenAI client:
     from openai import OpenAI
@@ -78,7 +78,7 @@ class OpenAIHandler(BaseHTTPRequestHandler):
     def _handle_models(self):
         model_ids = self.agent.models()
         if not model_ids:
-            model_ids = ["sssi-default"]
+            model_ids = ["openclaw-default"]
         self._json_response(200, make_model_id_list(model_ids))
 
     def _handle_chat_completions(self):
@@ -86,7 +86,7 @@ class OpenAIHandler(BaseHTTPRequestHandler):
         if body is None:
             return
 
-        model = body.get("model", "sssi-default")
+        model = body.get("model", "openclaw-default")
         messages = body.get("messages", [])
         max_tokens = body.get("max_tokens") or body.get("max_completion_tokens") or 256
         temperature = body.get("temperature", 0.7)
@@ -132,7 +132,7 @@ class OpenAIHandler(BaseHTTPRequestHandler):
         if body is None:
             return
 
-        model = body.get("model", "sssi-default")
+        model = body.get("model", "openclaw-default")
         prompt = body.get("prompt", "")
         max_tokens = body.get("max_tokens", 256)
         temperature = body.get("temperature", 0.7)
@@ -272,7 +272,7 @@ def run_server(
     Args:
         port: Port to listen on.
         host: Host to bind to.
-        node_url: URL of the local SSSI P2P node.
+        node_url: URL of the local OpenClaw P2P node.
         contribute: If True, contribute compute (contributor tier).
         gpu_memory: GPU memory to advertise.
         accelerator: Accelerator type.
@@ -289,12 +289,12 @@ def run_server(
     server = HTTPServer((host, port), OpenAIHandler)
     tier = agent.tier
 
-    print(f"SSSI OpenAI-compatible server running on http://{host}:{port}")
+    print(f"USSI OpenAI-compatible server running on http://{host}:{port}")
     print(f"  Tier: {tier.upper()}")
     print()
     print("Use with any OpenAI client:")
     print(f'  from openai import OpenAI')
-    print(f'  client = OpenAI(base_url="http://localhost:{port}/v1", api_key="sssi")')
+    print(f'  client = OpenAI(base_url="http://localhost:{port}/v1", api_key="ussi")')
     print(f'  response = client.chat.completions.create(')
     print(f'      model="llama-7b",')
     print(f'      messages=[{{"role": "user", "content": "Hello"}}],')

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Example: Join the SSSI network and participate in training."""
+"""Example: Join the USSI network and participate in training."""
 
-from sssi import Agent
+from ussi import Agent
 
 
 def main():

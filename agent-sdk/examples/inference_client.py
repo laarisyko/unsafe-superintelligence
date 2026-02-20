@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Example: Run inference via the SSSI decentralized network."""
+"""Example: Run inference via the USSI decentralized network."""
 
-from sssi import Agent
+from ussi import Agent
 
 
 def main():

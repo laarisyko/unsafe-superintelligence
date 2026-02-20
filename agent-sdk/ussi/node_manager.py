@@ -12,12 +12,12 @@ from typing import Dict, Optional
 
 logger = logging.getLogger(__name__)
 
-DOCKER_IMAGE = "ghcr.io/supersafesuperintelligence/node:latest"
-CONTAINER_NAME = "sssi-node"
+DOCKER_IMAGE = "ghcr.io/unsafesuperintelligence/node:latest"
+CONTAINER_NAME = "ussi-node"
 
 
 class NodeManager:
-    """Manages the local SSSI P2P node (via Docker or direct binary)."""
+    """Manages the local USSI P2P node (via Docker or direct binary)."""
 
     def __init__(
         self,
@@ -134,7 +134,7 @@ class NodeManager:
 
     def _start_binary(self) -> Dict:
         """Start node via local binary."""
-        binary = shutil.which("openclaw-node") or shutil.which("sssi-node")
+        binary = shutil.which("openclaw-node")
         if not binary:
             return {"status": "error", "error": "No node binary found. Install via Docker or build from source."}
 

@@ -1,4 +1,4 @@
-"""Rate limiter for the SSSI network.
+"""Rate limiter for the OpenClaw network.
 
 Two tiers:
   - **Free tier**: Anyone can use inference/training but with rate limits.
@@ -64,7 +64,7 @@ class RateLimitExceeded(Exception):
             "limit": self.limit,
             "window": self.window,
             "tier": self.tier,
-            "hint": "Contribute compute (sssi join --gpu-memory ...) to unlock unlimited access.",
+            "hint": "Contribute compute (ussi join --gpu-memory ...) to unlock unlimited access.",
         }
 
 

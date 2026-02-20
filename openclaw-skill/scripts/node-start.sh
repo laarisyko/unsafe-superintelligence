@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Start the SSSI P2P node.
+# Start the USSI P2P node.
 set -euo pipefail
 
 BOOTSTRAP="${1:-}"
@@ -8,4 +8,4 @@ if [ -n "$BOOTSTRAP" ]; then
     EXTRA_ARGS="--bootstrap $BOOTSTRAP"
 fi
 
-sssi node start $EXTRA_ARGS --json
+ussi node start $EXTRA_ARGS --json

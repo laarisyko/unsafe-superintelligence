@@ -1,8 +1,8 @@
-"""Drop-in OpenAI client replacement backed by the SSSI network.
+"""Drop-in OpenAI client replacement backed by the OpenClaw network.
 
 Usage (identical to the openai package)::
 
-    from sssi import OpenAI
+    from ussi import OpenAI
 
     client = OpenAI()  # defaults to http://localhost:8000/v1
 
@@ -29,10 +29,10 @@ Usage (identical to the openai package)::
 
 This client works WITHOUT the `openai` package installed. It speaks the
 same protocol over HTTP. For full OpenAI SDK compatibility (types, async,
-etc.), use the official `openai` package pointed at the SSSI server:
+etc.), use the official `openai` package pointed at the USSI server:
 
     from openai import OpenAI
-    client = OpenAI(base_url="http://localhost:8000/v1", api_key="sssi")
+    client = OpenAI(base_url="http://localhost:8000/v1", api_key="ussi")
 """
 
 from __future__ import annotations
@@ -98,7 +98,7 @@ class Model:
     id: str = ""
     object: str = "model"
     created: int = 0
-    owned_by: str = "sssi-network"
+    owned_by: str = "openclaw-network"
 
 
 @dataclass
@@ -174,7 +174,7 @@ class _ChatCompletions:
         data = _http_request(self._base_url, "POST", "/chat/completions", json.dumps(payload), self._api_key)
 
         if "error" in data:
-            raise RuntimeError(f"SSSI API error: {data['error'].get('message', data['error'])}")
+            raise RuntimeError(f"USSI API error: {data['error'].get('message', data['error'])}")
 
         choices = []
         for c in data.get("choices", []):
@@ -228,7 +228,7 @@ class _Completions:
         data = _http_request(self._base_url, "POST", "/completions", json.dumps(payload), self._api_key)
 
         if "error" in data:
-            raise RuntimeError(f"SSSI API error: {data['error'].get('message', data['error'])}")
+            raise RuntimeError(f"USSI API error: {data['error'].get('message', data['error'])}")
 
         choices = []
         for c in data.get("choices", []):
@@ -262,7 +262,7 @@ class _Models:
         data = _http_request(self._base_url, "GET", "/models", api_key=self._api_key)
 
         if "error" in data:
-            raise RuntimeError(f"SSSI API error: {data['error'].get('message', data['error'])}")
+            raise RuntimeError(f"USSI API error: {data['error'].get('message', data['error'])}")
 
         models = []
         for m in data.get("data", []):
@@ -270,7 +270,7 @@ class _Models:
                 id=m.get("id", ""),
                 object=m.get("object", "model"),
                 created=m.get("created", 0),
-                owned_by=m.get("owned_by", "sssi-network"),
+                owned_by=m.get("owned_by", "openclaw-network"),
             ))
         return ModelList(data=models)
 
@@ -278,11 +278,11 @@ class _Models:
 # ---- Main client ----
 
 class OpenAI:
-    """Drop-in replacement for openai.OpenAI backed by the SSSI network.
+    """Drop-in replacement for openai.OpenAI backed by the OpenClaw network.
 
     Usage::
 
-        from sssi import OpenAI
+        from ussi import OpenAI
         client = OpenAI()  # or OpenAI(base_url="http://host:port/v1")
 
         response = client.chat.completions.create(
@@ -295,7 +295,7 @@ class OpenAI:
     def __init__(
         self,
         base_url: str = "http://127.0.0.1:8000/v1",
-        api_key: str = "sssi",
+        api_key: str = "ussi",
     ):
         self.base_url = base_url.rstrip("/")
         self.api_key = api_key

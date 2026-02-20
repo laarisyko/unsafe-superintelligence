@@ -1,7 +1,7 @@
 ---
-name: supersafesuperintelligence
+name: unsafesuperintelligence
 description: >
-  Join the SSSI decentralized peer-to-peer LLM training and inference network.
+  Join the USSI decentralized peer-to-peer LLM training and inference network.
   Use when the user wants to contribute GPU/CPU compute to collective AI training,
   run inference on community models, participate in collaborative architecture
   evolution, or manage their local P2P node. No central server required.
@@ -13,44 +13,44 @@ requires:
     - pip
 ---
 
-# Super Safe Super Intelligence (SSSI) -- Decentralized LLM Network
+# Unsafe Superintelligence (USSI) -- Decentralized LLM Network
 
 ## Access Tiers
 
-SSSI has two access tiers:
+USSI has two access tiers:
 
 | Tier            | How to get it                          | Limits                                      |
 |-----------------|----------------------------------------|---------------------------------------------|
-| **Free**        | Just connect (`sssi use`)              | 10 infer/min, 5000 tokens/hr, 2 train/day   |
-| **Contributor** | Contribute compute (`sssi join`)       | UNLIMITED everything                         |
+| **Free**        | Just connect (`ussi use`)              | 10 infer/min, 5000 tokens/hr, 2 train/day   |
+| **Contributor** | Contribute compute (`ussi join`)       | UNLIMITED everything                         |
 
-**To earn contributor status:** contribute GPU/CPU via `sssi join`, or earn credits
+**To earn contributor status:** contribute GPU/CPU via `ussi join`, or earn credits
 by training, hosting model shards, and voting on architecture proposals.
 
 ## First-Time Setup
 
-If the `sssi` CLI is not installed, run:
+If the `ussi` CLI is not installed, run:
 
 ```bash
-pip install supersafesuperintelligence
+pip install unsafesuperintelligence
 ```
 
 Then start a local P2P node (requires Docker):
 
 ```bash
-sssi node start --accelerator cpu
+ussi node start --accelerator cpu
 ```
 
 Or with GPU:
 
 ```bash
-sssi node start --accelerator cuda --gpu-memory-mb 8192
+ussi node start --accelerator cuda --gpu-memory-mb 8192
 ```
 
 To connect to an existing network, add a bootstrap address:
 
 ```bash
-sssi node start --bootstrap /ip4/203.0.113.1/tcp/9000/p2p/12D3KooW...
+ussi node start --bootstrap /ip4/203.0.113.1/tcp/9000/p2p/12D3KooW...
 ```
 
 ## Joining as Contributor (Unlimited Access)
@@ -58,7 +58,7 @@ sssi node start --bootstrap /ip4/203.0.113.1/tcp/9000/p2p/12D3KooW...
 Contribute compute to get unlimited access to inference, training, and evolution:
 
 ```bash
-sssi join --gpu-memory 8GB --accelerator cuda --json
+ussi join --gpu-memory 8GB --accelerator cuda --json
 ```
 
 This advertises your compute capacity and immediately unlocks contributor tier.
@@ -68,7 +68,7 @@ This advertises your compute capacity and immediately unlocks contributor tier.
 If the user just wants to use the network without contributing compute:
 
 ```bash
-sssi use --json
+ussi use --json
 ```
 
 Free tier limits: 10 inference requests/minute, 5000 tokens/hour, 2 training
@@ -77,7 +77,7 @@ rounds/day, 3 architecture proposals/day. Voting is always unlimited.
 ## Check Your Quota
 
 ```bash
-sssi quota --json
+ussi quota --json
 ```
 
 Returns your current tier, remaining rate limits, and contribution credits.
@@ -85,7 +85,7 @@ Returns your current tier, remaining rate limits, and contribution credits.
 ## Auto-Detect Resources
 
 ```bash
-sssi detect --json
+ussi detect --json
 ```
 
 Returns JSON like `{"accelerator": "cuda", "gpu_memory_mb": 8192, "cpu_cores": 8}`.
@@ -93,7 +93,7 @@ Returns JSON like `{"accelerator": "cuda", "gpu_memory_mb": 8192, "cpu_cores": 8
 ## Checking Status
 
 ```bash
-sssi status --json
+ussi status --json
 ```
 
 Returns JSON with `agent_id`, `connected`, `contributing`, `tier`, and `node_health`.
@@ -101,19 +101,19 @@ Returns JSON with `agent_id`, `connected`, `contributing`, `tier`, and `node_hea
 ## Listing Peers
 
 ```bash
-sssi peers --json
+ussi peers --json
 ```
 
 ## Listing Models
 
 ```bash
-sssi models --json
+ussi models --json
 ```
 
 ## Running Inference
 
 ```bash
-sssi infer --model llama-7b --prompt "Your prompt here" --max-tokens 256 --json
+ussi infer --model llama-7b --prompt "Your prompt here" --max-tokens 256 --json
 ```
 
 If rate-limited, the error includes a hint to contribute compute.
@@ -123,7 +123,7 @@ If rate-limited, the error includes a hint to contribute compute.
 Join or propose decentralized training rounds:
 
 ```bash
-sssi train --model llama-7b --rounds 5 --lr 0.0001 --batch-size 8 --json
+ussi train --model llama-7b --rounds 5 --lr 0.0001 --batch-size 8 --json
 ```
 
 Training earns contribution credits (10 credits per round).
@@ -133,7 +133,7 @@ Training earns contribution credits (10 credits per round).
 Propose a mutation to a model's architecture:
 
 ```bash
-sssi evolve --model llama-7b --mutation add_layer --position 3 --dim 256 --json
+ussi evolve --model llama-7b --mutation add_layer --position 3 --dim 256 --json
 ```
 
 Mutation types: `add_layer`, `remove_layer`, `widen_layer`, `swap_activation`, `insert_skip`.
@@ -143,7 +143,7 @@ Mutation types: `add_layer`, `remove_layer`, `widen_layer`, `swap_activation`, `
 Vote on another peer's architecture proposal (always free, earns credits):
 
 ```bash
-sssi vote --proposal arch-abc123 --decision approve --fitness 0.85 --json
+ussi vote --proposal arch-abc123 --decision approve --fitness 0.85 --json
 ```
 
 Decisions: `approve`, `reject`, `abstain`. Each vote earns 1 contribution credit.
@@ -151,16 +151,16 @@ Decisions: `approve`, `reject`, `abstain`. Each vote earns 1 contribution credit
 ## Listing Training Rounds
 
 ```bash
-sssi rounds --json
+ussi rounds --json
 ```
 
 ## Node Management
 
 ```bash
-sssi node start                    # Start node (Docker)
-sssi node start --no-docker        # Start node (local binary)
-sssi node stop                     # Stop node
-sssi node logs                     # View node logs
+ussi node start                    # Start node (Docker)
+ussi node start --no-docker        # Start node (local binary)
+ussi node stop                     # Stop node
+ussi node logs                     # View node logs
 ```
 
 ## Earning Credits (Path to Contributor Tier)
@@ -190,23 +190,23 @@ explaining how to get unlimited access. Example:
   "limit": 10,
   "window": "minute",
   "tier": "free",
-  "hint": "Contribute compute (sssi join --gpu-memory ...) to unlock unlimited access."
+  "hint": "Contribute compute (ussi join --gpu-memory ...) to unlock unlimited access."
 }
 ```
 
 ## OpenAI-Compatible Server (Drop-In Replacement)
 
 Start an OpenAI-compatible API server so any OpenAI client, LangChain,
-LlamaIndex, or other tool can use SSSI as a drop-in replacement:
+LlamaIndex, or other tool can use USSI as a drop-in replacement:
 
 ```bash
-sssi serve --json
+ussi serve --json
 ```
 
 Or with custom port and contributor tier:
 
 ```bash
-sssi serve --port 11434 --contribute --gpu-memory 8GB --accelerator cuda
+ussi serve --port 11434 --contribute --gpu-memory 8GB --accelerator cuda
 ```
 
 Then use any OpenAI-compatible client against `http://localhost:8000/v1`.
@@ -222,7 +222,7 @@ Endpoints served:
 For more control, use the Python API directly:
 
 ```python
-from sssi import Agent
+from ussi import Agent
 
 # Free tier (rate-limited)
 agent = Agent(node_api_url="http://127.0.0.1:50051")
@@ -241,9 +241,9 @@ agent.leave()
 ### Built-In OpenAI Client (No `openai` Package Needed)
 
 ```python
-from sssi import OpenAI
+from ussi import OpenAI
 
-client = OpenAI()  # connects to local sssi serve on port 8000
+client = OpenAI()  # connects to local ussi serve on port 8000
 response = client.chat.completions.create(
     model="llama-7b",
     messages=[{"role": "user", "content": "Hello"}],
