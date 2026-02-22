@@ -79,6 +79,12 @@ class NetworkClient:
             "measured_fitness": fitness,
         })
 
+    def submit_data(self, text: str, source: str = "") -> Dict[str, Any]:
+        return self._post("/data/submit", {
+            "text": text,
+            "source": source,
+        })
+
     def detect_compute(self) -> Dict[str, Any]:
         return self._get("/detect")
 

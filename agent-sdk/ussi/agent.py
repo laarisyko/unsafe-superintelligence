@@ -194,6 +194,48 @@ class Agent:
         self.rate_limiter.record_evolve(self.agent_id)
         return proposal_id
 
+    def feed(
+        self,
+        text: str,
+        source: str = "",
+    ) -> dict:
+        """Submit text data to the network for training.
+
+        Free-tier agents are limited to 5 submissions/day.
+        Contributors have no limits.
+        """
+        self.rate_limiter.check_data_submission(self.agent_id, self.tier)
+
+        result = self.network.submit_data(text, source)
+        self.rate_limiter.record_data_submission(self.agent_id)
+        self.contributions.record_data_submission(
+            self.agent_id,
+            token_count=result.get("tokens", 0),
+            source=source,
+        )
+        return result
+
+    def generate_training_data(
+        self,
+        prompt: str,
+        model: str = "openclaw-default",
+        n_samples: int = 1,
+        max_tokens: int = 512,
+    ) -> dict:
+        """Generate text via inference, then feed each sample as training data."""
+        texts = []
+        total_tokens = 0
+        for _ in range(n_samples):
+            text = self.infer(model=model, prompt=prompt, max_tokens=max_tokens)
+            feed_result = self.feed(text, source=f"generated:{model}")
+            texts.append(text)
+            total_tokens += feed_result.get("tokens", 0)
+        return {
+            "samples_generated": len(texts),
+            "total_tokens": total_tokens,
+            "texts": texts,
+        }
+
     def vote_architecture(
         self,
         proposal_id: str,

@@ -78,6 +78,21 @@ pub struct GradientInfo {
     pub numel: usize,
 }
 
+/// Load data request sent to the Python engine.
+#[derive(Debug, Serialize)]
+pub struct LoadDataRequest {
+    pub text: String,
+    pub source: String,
+}
+
+/// Load data response from the Python engine.
+#[derive(Debug, Deserialize)]
+pub struct LoadDataResponse {
+    pub status: String,
+    pub tokens: u64,
+    pub sequences: u64,
+}
+
 /// Inference request sent to the Python engine.
 #[derive(Debug, Serialize)]
 pub struct InferenceRequest {
@@ -142,6 +157,18 @@ impl EngineBridge {
         let body = serde_json::to_vec(req)?;
         let resp = self.request("POST", "/infer", &body).await?;
         let result: InferenceResponse = serde_json::from_value(resp.data)?;
+        Ok(result)
+    }
+
+    /// Submit training data to the engine.
+    pub async fn load_data(&self, text: &str, source: &str) -> Result<LoadDataResponse> {
+        let req = LoadDataRequest {
+            text: text.to_string(),
+            source: source.to_string(),
+        };
+        let body = serde_json::to_vec(&req)?;
+        let resp = self.request("POST", "/load_data", &body).await?;
+        let result: LoadDataResponse = serde_json::from_value(resp.data)?;
         Ok(result)
     }
 

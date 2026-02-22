@@ -64,6 +64,8 @@ class OpenAIHandler(BaseHTTPRequestHandler):
             self._handle_chat_completions()
         elif self.path == "/v1/completions":
             self._handle_completions()
+        elif self.path == "/v1/training/data":
+            self._handle_training_data()
         else:
             self._json_response(404, make_error_response("Not found", code="not_found"))
 
@@ -175,6 +177,32 @@ class OpenAIHandler(BaseHTTPRequestHandler):
                 completion_tokens=completion_tokens,
             )
             self._json_response(200, resp)
+
+    def _handle_training_data(self):
+        body = self._read_body()
+        if body is None:
+            return
+
+        text = body.get("text", "")
+        source = body.get("source", "")
+
+        if not text:
+            self._json_response(400, make_error_response("text is required"))
+            return
+
+        try:
+            result = self.agent.feed(text=text, source=source)
+            self._json_response(200, {
+                "status": "ok",
+                "tokens": result.get("tokens", 0),
+                "sequences": result.get("sequences", 0),
+            })
+        except RateLimitExceeded as e:
+            self._json_response(429, make_error_response(
+                str(e),
+                error_type="rate_limit_error",
+                code="rate_limit_exceeded",
+            ))
 
     # ---- Streaming ----
 
@@ -304,6 +332,7 @@ def run_server(
     print(f"  GET  http://localhost:{port}/v1/models")
     print(f"  POST http://localhost:{port}/v1/chat/completions")
     print(f"  POST http://localhost:{port}/v1/completions")
+    print(f"  POST http://localhost:{port}/v1/training/data")
     print()
 
     try:

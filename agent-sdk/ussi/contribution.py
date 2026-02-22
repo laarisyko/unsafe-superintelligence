@@ -31,6 +31,7 @@ CREDITS_INFERENCE_SERVED = 1
 CREDITS_TRAINING_ROUND = 10
 CREDITS_SHARD_HOSTING_PER_MIN = 1
 CREDITS_ARCHITECTURE_VOTE = 1
+CREDITS_DATA_SUBMISSION = 3
 
 # Decay: credits halve every 24 hours
 CREDIT_HALF_LIFE_SECS = 86400
@@ -131,6 +132,11 @@ class ContributionTracker:
     def record_vote(self, peer_id: str, proposal_id: str = ""):
         pc = self.get_or_create(peer_id)
         pc.add("vote", CREDITS_ARCHITECTURE_VOTE, round_id=proposal_id)
+
+    def record_data_submission(self, peer_id: str, token_count: int = 0, source: str = ""):
+        pc = self.get_or_create(peer_id)
+        pc.add("data_submission", CREDITS_DATA_SUBMISSION, round_id=source)
+        logger.debug("Peer %s earned %d credit(s) for data submission", peer_id, CREDITS_DATA_SUBMISSION)
 
     def is_contributor(self, peer_id: str) -> bool:
         pc = self._peers.get(peer_id)

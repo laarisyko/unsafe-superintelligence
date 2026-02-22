@@ -26,6 +26,7 @@ class TierLimits:
     tokens_per_hour: int
     training_rounds_per_day: int
     evolve_proposals_per_day: int
+    data_submissions_per_day: int = 5
 
 
 # Default limits
@@ -34,6 +35,7 @@ FREE_TIER = TierLimits(
     tokens_per_hour=5_000,
     training_rounds_per_day=2,
     evolve_proposals_per_day=3,
+    data_submissions_per_day=5,
 )
 
 CONTRIBUTOR_TIER = TierLimits(
@@ -41,6 +43,7 @@ CONTRIBUTOR_TIER = TierLimits(
     tokens_per_hour=0,
     training_rounds_per_day=0,
     evolve_proposals_per_day=0,
+    data_submissions_per_day=0,
 )
 
 
@@ -99,6 +102,7 @@ class RateLimiter:
         self._token_counts: Dict[str, list] = {}  # (timestamp, token_count) pairs
         self._training_buckets: Dict[str, _BucketState] = {}
         self._evolve_buckets: Dict[str, _BucketState] = {}
+        self._data_buckets: Dict[str, _BucketState] = {}
 
     def _get_bucket(self, store: Dict[str, _BucketState], peer_id: str) -> _BucketState:
         if peer_id not in store:
@@ -168,6 +172,21 @@ class RateLimiter:
         bucket = self._get_bucket(self._evolve_buckets, peer_id)
         bucket.record()
 
+    def check_data_submission(self, peer_id: str, tier: str = "free"):
+        """Check if a data submission is allowed."""
+        if tier == "contributor":
+            return
+
+        bucket = self._get_bucket(self._data_buckets, peer_id)
+        count = bucket.count_in_window(86400)
+        if self.free_limits.data_submissions_per_day > 0 and count >= self.free_limits.data_submissions_per_day:
+            raise RateLimitExceeded("data submissions", self.free_limits.data_submissions_per_day, "day")
+
+    def record_data_submission(self, peer_id: str):
+        """Record a data submission."""
+        bucket = self._get_bucket(self._data_buckets, peer_id)
+        bucket.record()
+
     def get_remaining(self, peer_id: str, tier: str = "free") -> dict:
         """Return remaining quota for a peer."""
         if tier == "contributor":
@@ -177,6 +196,7 @@ class RateLimiter:
                 "tokens_remaining": -1,
                 "training_rounds_remaining": -1,
                 "evolve_proposals_remaining": -1,
+                "data_submissions_remaining": -1,
             }
 
         inf_bucket = self._get_bucket(self._inference_buckets, peer_id)
@@ -192,6 +212,9 @@ class RateLimiter:
         evolve_bucket = self._get_bucket(self._evolve_buckets, peer_id)
         evolve_used = evolve_bucket.count_in_window(86400)
 
+        data_bucket = self._get_bucket(self._data_buckets, peer_id)
+        data_used = data_bucket.count_in_window(86400)
+
         return {
             "tier": "free",
             "inference_requests_remaining": max(0, self.free_limits.requests_per_minute - inf_used),
@@ -206,4 +229,7 @@ class RateLimiter:
             "evolve_proposals_remaining": max(0, self.free_limits.evolve_proposals_per_day - evolve_used),
             "evolve_proposals_limit": self.free_limits.evolve_proposals_per_day,
             "evolve_window": "per day",
+            "data_submissions_remaining": max(0, self.free_limits.data_submissions_per_day - data_used),
+            "data_submissions_limit": self.free_limits.data_submissions_per_day,
+            "data_window": "per day",
         }

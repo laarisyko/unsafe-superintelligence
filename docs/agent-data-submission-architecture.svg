@@ -1,0 +1,342 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 920" font-family="'SF Mono','Fira Code','Consolas',monospace" font-size="12">
+  <defs>
+    <!-- Background gradient -->
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0e17"/>
+      <stop offset="100%" style="stop-color:#111827"/>
+    </linearGradient>
+    <!-- Box gradients -->
+    <linearGradient id="rust" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#c0392b;stop-opacity:0.15"/>
+      <stop offset="100%" style="stop-color:#c0392b;stop-opacity:0.05"/>
+    </linearGradient>
+    <linearGradient id="python" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#3498db;stop-opacity:0.15"/>
+      <stop offset="100%" style="stop-color:#3498db;stop-opacity:0.05"/>
+    </linearGradient>
+    <linearGradient id="agent" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#2ecc71;stop-opacity:0.18"/>
+      <stop offset="100%" style="stop-color:#2ecc71;stop-opacity:0.05"/>
+    </linearGradient>
+    <linearGradient id="entry" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#f39c12;stop-opacity:0.2"/>
+      <stop offset="100%" style="stop-color:#f39c12;stop-opacity:0.05"/>
+    </linearGradient>
+    <linearGradient id="guard" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#e74c3c;stop-opacity:0.18"/>
+      <stop offset="100%" style="stop-color:#e74c3c;stop-opacity:0.05"/>
+    </linearGradient>
+    <linearGradient id="engine" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#9b59b6;stop-opacity:0.18"/>
+      <stop offset="100%" style="stop-color:#9b59b6;stop-opacity:0.05"/>
+    </linearGradient>
+    <!-- Arrow marker -->
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#60a5fa"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#34d399"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#fbbf24"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#f87171"/>
+    </marker>
+    <marker id="arrow-purple" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#c084fc"/>
+    </marker>
+    <!-- Glow filter -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1280" height="920" fill="url(#bg)" rx="12"/>
+
+  <!-- Title -->
+  <text x="640" y="38" text-anchor="middle" fill="#f1f5f9" font-size="20" font-weight="bold" letter-spacing="1">Agent Data Submission API  --  Architecture Overview</text>
+  <text x="640" y="58" text-anchor="middle" fill="#64748b" font-size="11">Full data-submission path: Entry Points --> Agent SDK --> Rust Node API --> Engine Bridge --> Training Pipeline</text>
+
+  <!-- ============================================================ -->
+  <!-- LAYER LABELS (left side) -->
+  <!-- ============================================================ -->
+  <text x="18" y="145" fill="#475569" font-size="10" transform="rotate(-90,18,145)" text-anchor="middle" letter-spacing="2">ENTRY POINTS</text>
+  <text x="18" y="395" fill="#475569" font-size="10" transform="rotate(-90,18,395)" text-anchor="middle" letter-spacing="2">AGENT SDK (Python)</text>
+  <text x="18" y="640" fill="#475569" font-size="10" transform="rotate(-90,18,640)" text-anchor="middle" letter-spacing="2">RUST P2P NODE</text>
+  <text x="18" y="840" fill="#475569" font-size="10" transform="rotate(-90,18,840)" text-anchor="middle" letter-spacing="2">ML ENGINE</text>
+
+  <!-- ============================================================ -->
+  <!-- ROW 1: ENTRY POINTS -->
+  <!-- ============================================================ -->
+
+  <!-- CLI: ussi feed -->
+  <rect x="55" y="82" width="260" height="110" rx="8" fill="url(#entry)" stroke="#f59e0b" stroke-width="1.2" filter="url(#shadow)"/>
+  <text x="185" y="102" text-anchor="middle" fill="#fbbf24" font-size="13" font-weight="bold">ussi feed  (CLI)</text>
+  <line x1="75" y1="110" x2="295" y2="110" stroke="#f59e0b" stroke-opacity="0.3"/>
+  <text x="70" y="128" fill="#cbd5e1" font-size="10">$ ussi feed --text "Hello world"</text>
+  <text x="70" y="143" fill="#cbd5e1" font-size="10">$ ussi feed --file data.txt</text>
+  <text x="70" y="158" fill="#cbd5e1" font-size="10">$ ussi feed --generate --samples 3</text>
+  <text x="70" y="175" fill="#94a3b8" font-size="9">Flags: --text, --file, --source,</text>
+  <text x="70" y="186" fill="#94a3b8" font-size="9">       --generate, --model, --samples</text>
+
+  <!-- Programmatic: agent.feed() -->
+  <rect x="345" y="82" width="290" height="110" rx="8" fill="url(#entry)" stroke="#f59e0b" stroke-width="1.2" filter="url(#shadow)"/>
+  <text x="490" y="102" text-anchor="middle" fill="#fbbf24" font-size="13" font-weight="bold">agent.feed()  (Python SDK)</text>
+  <line x1="365" y1="110" x2="615" y2="110" stroke="#f59e0b" stroke-opacity="0.3"/>
+  <text x="358" y="130" fill="#cbd5e1" font-size="10">from ussi import Agent</text>
+  <text x="358" y="145" fill="#cbd5e1" font-size="10">agent = Agent()</text>
+  <text x="358" y="160" fill="#cbd5e1" font-size="10">agent.feed("training text")</text>
+  <text x="358" y="175" fill="#cbd5e1" font-size="10">agent.generate_training_data(</text>
+  <text x="358" y="186" fill="#cbd5e1" font-size="10">    prompt="...", n_samples=5)</text>
+
+  <!-- OpenAI-compatible: /v1/training/data -->
+  <rect x="665" y="82" width="290" height="110" rx="8" fill="url(#entry)" stroke="#f59e0b" stroke-width="1.2" filter="url(#shadow)"/>
+  <text x="810" y="102" text-anchor="middle" fill="#fbbf24" font-size="13" font-weight="bold">POST /v1/training/data</text>
+  <line x1="685" y1="110" x2="935" y2="110" stroke="#f59e0b" stroke-opacity="0.3"/>
+  <text x="678" y="128" fill="#94a3b8" font-size="9">OpenAI-compatible server (ussi serve)</text>
+  <text x="678" y="146" fill="#cbd5e1" font-size="10">POST http://localhost:8000</text>
+  <text x="678" y="160" fill="#cbd5e1" font-size="10">     /v1/training/data</text>
+  <text x="678" y="178" fill="#cbd5e1" font-size="10">Body: {"text":"...",</text>
+  <text x="678" y="190" fill="#cbd5e1" font-size="10">       "source":"agent"}</text>
+
+  <!-- Legend box -->
+  <rect x="985" y="82" width="265" height="110" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1" filter="url(#shadow)"/>
+  <text x="1118" y="102" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="bold">Data Flow Legend</text>
+  <line x1="1005" y1="110" x2="1230" y2="110" stroke="#334155"/>
+  <line x1="1010" y1="128" x2="1060" y2="128" stroke="#60a5fa" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <text x="1070" y="132" fill="#cbd5e1" font-size="10">Primary data path</text>
+  <line x1="1010" y1="148" x2="1060" y2="148" stroke="#34d399" stroke-width="1.8" marker-end="url(#arrow-green)"/>
+  <text x="1070" y="152" fill="#cbd5e1" font-size="10">Rate limit / guard check</text>
+  <line x1="1010" y1="168" x2="1060" y2="168" stroke="#fbbf24" stroke-width="1.8" marker-end="url(#arrow-orange)"/>
+  <text x="1070" y="172" fill="#cbd5e1" font-size="10">Credit / contribution record</text>
+  <line x1="1010" y1="188" x2="1060" y2="188" stroke="#c084fc" stroke-width="1.8" marker-end="url(#arrow-purple)"/>
+  <text x="1070" y="192" fill="#cbd5e1" font-size="10">Response / feedback path</text>
+
+  <!-- ============================================================ -->
+  <!-- Arrows: Entry points --> Agent.feed() -->
+  <!-- ============================================================ -->
+  <line x1="185" y1="192" x2="185" y2="248" stroke="#60a5fa" stroke-width="1.8" stroke-dasharray="6,3" marker-end="url(#arrow)"/>
+  <line x1="490" y1="192" x2="490" y2="248" stroke="#60a5fa" stroke-width="1.8" stroke-dasharray="6,3" marker-end="url(#arrow)"/>
+  <line x1="810" y1="192" x2="810" y2="248" stroke="#60a5fa" stroke-width="1.8" stroke-dasharray="6,3" marker-end="url(#arrow)"/>
+
+  <!-- ============================================================ -->
+  <!-- ROW 2: AGENT SDK LAYER -->
+  <!-- ============================================================ -->
+
+  <!-- Big surrounding box for Agent SDK -->
+  <rect x="40" y="237" width="930" height="310" rx="10" fill="none" stroke="#22d3ee" stroke-width="0.7" stroke-dasharray="4,4" stroke-opacity="0.4"/>
+  <text x="52" y="254" fill="#22d3ee" font-size="10" opacity="0.6">agent-sdk/ussi/</text>
+
+  <!-- Agent.feed() box -->
+  <rect x="160" y="262" width="370" height="128" rx="8" fill="url(#agent)" stroke="#22c55e" stroke-width="1.2" filter="url(#shadow)"/>
+  <text x="345" y="282" text-anchor="middle" fill="#4ade80" font-size="13" font-weight="bold">Agent.feed(text, source)</text>
+  <line x1="180" y1="290" x2="510" y2="290" stroke="#22c55e" stroke-opacity="0.3"/>
+  <text x="172" y="308" fill="#cbd5e1" font-size="10">1. rate_limiter.check_data_submission()</text>
+  <text x="172" y="324" fill="#cbd5e1" font-size="10">2. network.submit_data(text, source)</text>
+  <text x="172" y="340" fill="#cbd5e1" font-size="10">3. rate_limiter.record_data_submission()</text>
+  <text x="172" y="356" fill="#cbd5e1" font-size="10">4. contributions.record_data_submission()</text>
+  <text x="172" y="374" fill="#94a3b8" font-size="9">Returns: {"status","tokens","sequences"}</text>
+
+  <!-- Agent.generate_training_data() box -->
+  <rect x="560" y="262" width="390" height="128" rx="8" fill="url(#agent)" stroke="#22c55e" stroke-width="1.2" filter="url(#shadow)"/>
+  <text x="755" y="282" text-anchor="middle" fill="#4ade80" font-size="13" font-weight="bold">Agent.generate_training_data()</text>
+  <line x1="580" y1="290" x2="930" y2="290" stroke="#22c55e" stroke-opacity="0.3"/>
+  <text x="572" y="308" fill="#cbd5e1" font-size="10">params: prompt, model, n_samples, max_tokens</text>
+  <text x="572" y="328" fill="#cbd5e1" font-size="10">for each sample:</text>
+  <text x="572" y="344" fill="#cbd5e1" font-size="10">  1. text = self.infer(model, prompt)</text>
+  <text x="572" y="360" fill="#cbd5e1" font-size="10">  2. self.feed(text, "generated:{model}")</text>
+  <text x="572" y="378" fill="#94a3b8" font-size="9">Returns: {samples_generated, total_tokens, texts}</text>
+
+  <!-- Arrow from generate_training_data to feed -->
+  <path d="M 560,340 C 540,340 540,330 530,330" stroke="#60a5fa" stroke-width="1.4" fill="none" marker-end="url(#arrow)"/>
+
+  <!-- Rate Limiter box -->
+  <rect x="55" y="410" width="250" height="120" rx="8" fill="url(#guard)" stroke="#ef4444" stroke-width="1.2" filter="url(#shadow)"/>
+  <text x="180" y="430" text-anchor="middle" fill="#f87171" font-size="12" font-weight="bold">RateLimiter</text>
+  <line x1="75" y1="438" x2="285" y2="438" stroke="#ef4444" stroke-opacity="0.3"/>
+  <text x="68" y="456" fill="#cbd5e1" font-size="10">check_data_submission(peer, tier)</text>
+  <text x="68" y="472" fill="#cbd5e1" font-size="10">record_data_submission(peer)</text>
+  <line x1="75" y1="482" x2="285" y2="482" stroke="#ef4444" stroke-opacity="0.15"/>
+  <rect x="68" y="490" width="105" height="18" rx="3" fill="#dc2626" fill-opacity="0.15" stroke="#dc2626" stroke-opacity="0.4" stroke-width="0.8"/>
+  <text x="120" y="503" text-anchor="middle" fill="#fca5a5" font-size="10" font-weight="bold">FREE: 5/day</text>
+  <rect x="183" y="490" width="110" height="18" rx="3" fill="#16a34a" fill-opacity="0.15" stroke="#16a34a" stroke-opacity="0.4" stroke-width="0.8"/>
+  <text x="238" y="503" text-anchor="middle" fill="#86efac" font-size="10" font-weight="bold">CONTRIB: Unlimited</text>
+
+  <!-- Contribution Tracker box -->
+  <rect x="330" y="410" width="250" height="120" rx="8" fill="url(#python)" stroke="#3b82f6" stroke-width="1.2" filter="url(#shadow)"/>
+  <text x="455" y="430" text-anchor="middle" fill="#60a5fa" font-size="12" font-weight="bold">ContributionTracker</text>
+  <line x1="350" y1="438" x2="560" y2="438" stroke="#3b82f6" stroke-opacity="0.3"/>
+  <text x="342" y="456" fill="#cbd5e1" font-size="10">record_data_submission(peer_id,</text>
+  <text x="342" y="472" fill="#cbd5e1" font-size="10">    token_count, source)</text>
+  <line x1="350" y1="482" x2="560" y2="482" stroke="#3b82f6" stroke-opacity="0.15"/>
+  <text x="342" y="500" fill="#94a3b8" font-size="10">event_type: "data_submission"</text>
+  <text x="342" y="516" fill="#fbbf24" font-size="10" font-weight="bold">+3 credits per submission</text>
+
+  <!-- NetworkClient box -->
+  <rect x="615" y="410" width="340" height="120" rx="8" fill="url(#agent)" stroke="#22c55e" stroke-width="1.2" filter="url(#shadow)"/>
+  <text x="785" y="430" text-anchor="middle" fill="#4ade80" font-size="12" font-weight="bold">NetworkClient.submit_data()</text>
+  <line x1="635" y1="438" x2="935" y2="438" stroke="#22c55e" stroke-opacity="0.3"/>
+  <text x="628" y="456" fill="#cbd5e1" font-size="10">POST /data/submit</text>
+  <text x="628" y="474" fill="#cbd5e1" font-size="10">Body: {"text": "...", "source": "..."}</text>
+  <line x1="635" y1="486" x2="935" y2="486" stroke="#22c55e" stroke-opacity="0.15"/>
+  <text x="628" y="504" fill="#94a3b8" font-size="10">Raw HTTP/1.1 over TCP socket</text>
+  <text x="628" y="518" fill="#94a3b8" font-size="10">Target: http://127.0.0.1:50051</text>
+
+  <!-- Arrows within Agent SDK -->
+  <!-- feed() -> RateLimiter -->
+  <path d="M 220,390 L 180,410" stroke="#34d399" stroke-width="1.4" fill="none" marker-end="url(#arrow-green)"/>
+  <text x="162" y="400" fill="#34d399" font-size="8">1. check</text>
+  <!-- feed() -> NetworkClient -->
+  <path d="M 430,390 L 700,410" stroke="#60a5fa" stroke-width="1.4" fill="none" marker-end="url(#arrow)"/>
+  <text x="530" y="394" fill="#60a5fa" font-size="8">2. submit</text>
+  <!-- feed() -> ContributionTracker -->
+  <path d="M 345,390 L 420,410" stroke="#fbbf24" stroke-width="1.4" fill="none" marker-end="url(#arrow-orange)"/>
+  <text x="350" y="400" fill="#fbbf24" font-size="8">4. record</text>
+
+  <!-- ============================================================ -->
+  <!-- ROW 3: RUST NODE LAYER -->
+  <!-- ============================================================ -->
+
+  <!-- Big surrounding box for Rust Node -->
+  <rect x="40" y="565" width="930" height="155" rx="10" fill="none" stroke="#f87171" stroke-width="0.7" stroke-dasharray="4,4" stroke-opacity="0.4"/>
+  <text x="52" y="582" fill="#f87171" font-size="10" opacity="0.6">node/src/</text>
+
+  <!-- Arrow: NetworkClient -> Rust Node -->
+  <line x1="785" y1="530" x2="785" y2="565" stroke="#60a5fa" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="795" y="552" fill="#60a5fa" font-size="9">HTTP :50051</text>
+
+  <!-- API Server endpoint -->
+  <rect x="100" y="590" width="380" height="115" rx="8" fill="url(#rust)" stroke="#ef4444" stroke-width="1.2" filter="url(#shadow)"/>
+  <text x="290" y="610" text-anchor="middle" fill="#f87171" font-size="12" font-weight="bold">grpc_server.rs  --  POST /data/submit</text>
+  <line x1="120" y1="618" x2="460" y2="618" stroke="#ef4444" stroke-opacity="0.3"/>
+  <text x="112" y="636" fill="#cbd5e1" font-size="10">1. Parse DataSubmitRequest {text, source}</text>
+  <text x="112" y="652" fill="#cbd5e1" font-size="10">2. Check engine bridge is connected</text>
+  <text x="112" y="668" fill="#cbd5e1" font-size="10">3. Forward to engine.load_data()</text>
+  <text x="112" y="684" fill="#cbd5e1" font-size="10">4. Return {status, tokens, sequences}</text>
+  <text x="112" y="700" fill="#94a3b8" font-size="9">Error: "engine bridge not connected"</text>
+
+  <!-- Bridge -->
+  <rect x="530" y="590" width="420" height="115" rx="8" fill="url(#rust)" stroke="#ef4444" stroke-width="1.2" filter="url(#shadow)"/>
+  <text x="740" y="610" text-anchor="middle" fill="#f87171" font-size="12" font-weight="bold">bridge.rs  --  EngineBridge::load_data()</text>
+  <line x1="550" y1="618" x2="930" y2="618" stroke="#ef4444" stroke-opacity="0.3"/>
+  <text x="542" y="636" fill="#cbd5e1" font-size="10">LoadDataRequest  { text: String, source: String }</text>
+  <text x="542" y="652" fill="#cbd5e1" font-size="10">LoadDataResponse { status, tokens, sequences }</text>
+  <line x1="550" y1="664" x2="930" y2="664" stroke="#ef4444" stroke-opacity="0.15"/>
+  <text x="542" y="680" fill="#cbd5e1" font-size="10">POST /load_data --> Python engine bridge server</text>
+  <text x="542" y="696" fill="#94a3b8" font-size="10">HTTP/1.1 over TCP, retries: 3, timeout: 30s</text>
+
+  <!-- Arrow: API -> Bridge -->
+  <line x1="480" y1="648" x2="530" y2="648" stroke="#60a5fa" stroke-width="1.8" marker-end="url(#arrow)"/>
+
+  <!-- ============================================================ -->
+  <!-- ROW 4: PYTHON ENGINE LAYER -->
+  <!-- ============================================================ -->
+
+  <!-- Big surrounding box for Engine -->
+  <rect x="40" y="745" width="930" height="155" rx="10" fill="none" stroke="#c084fc" stroke-width="0.7" stroke-dasharray="4,4" stroke-opacity="0.4"/>
+  <text x="52" y="762" fill="#c084fc" font-size="10" opacity="0.6">engine/openclaw_engine/</text>
+
+  <!-- Arrow: Bridge -> Engine -->
+  <line x1="740" y1="705" x2="740" y2="745" stroke="#60a5fa" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="750" y="732" fill="#60a5fa" font-size="9">HTTP :50052</text>
+
+  <!-- Bridge Server (Python side) -->
+  <rect x="100" y="770" width="310" height="115" rx="8" fill="url(#engine)" stroke="#a855f7" stroke-width="1.2" filter="url(#shadow)"/>
+  <text x="255" y="790" text-anchor="middle" fill="#c084fc" font-size="12" font-weight="bold">bridge.py  --  /load_data handler</text>
+  <line x1="120" y1="798" x2="390" y2="798" stroke="#a855f7" stroke-opacity="0.3"/>
+  <text x="112" y="816" fill="#cbd5e1" font-size="10">HttpBridgeServer.handle_load_data()</text>
+  <text x="112" y="834" fill="#cbd5e1" font-size="10">1. Receive {text, source} JSON</text>
+  <text x="112" y="850" fill="#cbd5e1" font-size="10">2. Call Kickstart.load_text(text)</text>
+  <text x="112" y="866" fill="#cbd5e1" font-size="10">3. Tokenize + create sequences</text>
+  <text x="112" y="880" fill="#94a3b8" font-size="9">Returns: {status, tokens, sequences}</text>
+
+  <!-- Training Pipeline -->
+  <rect x="460" y="770" width="335" height="115" rx="8" fill="url(#engine)" stroke="#a855f7" stroke-width="1.2" filter="url(#shadow)"/>
+  <text x="627" y="790" text-anchor="middle" fill="#c084fc" font-size="12" font-weight="bold">Training Pipeline</text>
+  <line x1="480" y1="798" x2="775" y2="798" stroke="#a855f7" stroke-opacity="0.3"/>
+  <text x="472" y="816" fill="#cbd5e1" font-size="10">Kickstart.load_text(raw_text)</text>
+  <text x="472" y="834" fill="#cbd5e1" font-size="10">  --> ByteTokenizer.encode(text)</text>
+  <text x="472" y="852" fill="#cbd5e1" font-size="10">  --> Chunk into training sequences</text>
+  <text x="472" y="870" fill="#cbd5e1" font-size="10">  --> Add to DataLoader for next round</text>
+  <text x="472" y="884" fill="#94a3b8" font-size="9">vocab_size: 260, byte-level encoding</text>
+
+  <!-- Arrow: Bridge Server -> Pipeline -->
+  <line x1="410" y1="835" x2="460" y2="835" stroke="#c084fc" stroke-width="1.8" marker-end="url(#arrow-purple)"/>
+
+  <!-- Model icon -->
+  <rect x="835" y="770" width="120" height="115" rx="8" fill="url(#engine)" stroke="#a855f7" stroke-width="1.2" filter="url(#shadow)"/>
+  <text x="895" y="790" text-anchor="middle" fill="#c084fc" font-size="12" font-weight="bold">Model</text>
+  <line x1="855" y1="798" x2="935" y2="798" stroke="#a855f7" stroke-opacity="0.3"/>
+  <text x="847" y="818" fill="#cbd5e1" font-size="10">LanguageModel</text>
+  <text x="847" y="834" fill="#cbd5e1" font-size="10">(nn.Module)</text>
+  <line x1="855" y1="846" x2="935" y2="846" stroke="#a855f7" stroke-opacity="0.15"/>
+  <text x="847" y="862" fill="#94a3b8" font-size="9">Trained on</text>
+  <text x="847" y="876" fill="#94a3b8" font-size="9">submitted</text>
+  <text x="847" y="890" fill="#94a3b8" font-size="9">data</text>
+
+  <!-- Arrow: Pipeline -> Model -->
+  <line x1="795" y1="835" x2="835" y2="835" stroke="#c084fc" stroke-width="1.8" marker-end="url(#arrow-purple)"/>
+
+  <!-- ============================================================ -->
+  <!-- RIGHT SIDEBAR: File map -->
+  <!-- ============================================================ -->
+  <rect x="1000" y="237" width="250" height="460" rx="8" fill="#0f172a" stroke="#334155" stroke-width="1" filter="url(#shadow)"/>
+  <text x="1125" y="260" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="bold">Modified Files</text>
+  <line x1="1015" y1="268" x2="1235" y2="268" stroke="#334155"/>
+
+  <!-- File entries -->
+  <circle cx="1024" cy="290" r="4" fill="#22c55e"/>
+  <text x="1035" y="294" fill="#86efac" font-size="10" font-weight="bold">agent-sdk/ussi/</text>
+
+  <text x="1045" y="314" fill="#cbd5e1" font-size="10">contribution.py</text>
+  <text x="1045" y="328" fill="#64748b" font-size="9">+CREDITS_DATA_SUBMISSION</text>
+  <text x="1045" y="340" fill="#64748b" font-size="9">+record_data_submission()</text>
+
+  <text x="1045" y="360" fill="#cbd5e1" font-size="10">rate_limit.py</text>
+  <text x="1045" y="374" fill="#64748b" font-size="9">+data_submissions_per_day</text>
+  <text x="1045" y="386" fill="#64748b" font-size="9">+check/record_data_submission()</text>
+
+  <text x="1045" y="406" fill="#cbd5e1" font-size="10">network.py</text>
+  <text x="1045" y="420" fill="#64748b" font-size="9">+submit_data(text, source)</text>
+
+  <text x="1045" y="440" fill="#cbd5e1" font-size="10">agent.py</text>
+  <text x="1045" y="454" fill="#64748b" font-size="9">+feed(), +generate_training_data()</text>
+
+  <text x="1045" y="474" fill="#cbd5e1" font-size="10">cli.py</text>
+  <text x="1045" y="488" fill="#64748b" font-size="9">+ussi feed subcommand</text>
+
+  <text x="1045" y="508" fill="#cbd5e1" font-size="10">server.py</text>
+  <text x="1045" y="522" fill="#64748b" font-size="9">+POST /v1/training/data</text>
+
+  <line x1="1015" y1="536" x2="1235" y2="536" stroke="#334155"/>
+  <circle cx="1024" cy="552" r="4" fill="#ef4444"/>
+  <text x="1035" y="556" fill="#fca5a5" font-size="10" font-weight="bold">node/src/</text>
+
+  <text x="1045" y="576" fill="#cbd5e1" font-size="10">api/grpc_server.rs</text>
+  <text x="1045" y="590" fill="#64748b" font-size="9">+POST /data/submit endpoint</text>
+  <text x="1045" y="602" fill="#64748b" font-size="9">+DataSubmitRequest struct</text>
+
+  <text x="1045" y="622" fill="#cbd5e1" font-size="10">bridge.rs</text>
+  <text x="1045" y="636" fill="#64748b" font-size="9">+LoadDataRequest/Response</text>
+  <text x="1045" y="648" fill="#64748b" font-size="9">+EngineBridge::load_data()</text>
+
+  <line x1="1015" y1="662" x2="1235" y2="662" stroke="#334155"/>
+  <circle cx="1024" cy="678" r="4" fill="#fbbf24"/>
+  <text x="1035" y="682" fill="#fde68a" font-size="10" font-weight="bold">tests/integration/</text>
+  <text x="1045" y="700" fill="#cbd5e1" font-size="10">test_agent_data_submission.py</text>
+  <text x="1045" y="714" fill="#64748b" font-size="9">8 tests -- all passing</text>
+
+  <!-- ============================================================ -->
+  <!-- Response path (dotted, going back up) -->
+  <!-- ============================================================ -->
+  <path d="M 255,770 C 255,740 90,740 90,710 L 90,560 C 90,540 140,540 160,530 L 160,260"
+        stroke="#c084fc" stroke-width="1.2" stroke-dasharray="4,3" fill="none" marker-end="url(#arrow-purple)" opacity="0.5"/>
+  <text x="60" y="652" fill="#c084fc" font-size="8" opacity="0.6" transform="rotate(-90,60,652)">Response: {status, tokens, sequences}</text>
+
+</svg>

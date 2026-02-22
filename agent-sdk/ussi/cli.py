@@ -1,4 +1,4 @@
-"""CLI for USSI: ussi join | status | infer | train | evolve | vote | node | detect | models | rounds | quota | serve"""
+"""CLI for USSI: ussi join | status | infer | train | evolve | vote | feed | node | detect | models | rounds | quota | serve"""
 
 from __future__ import annotations
 
@@ -83,6 +83,15 @@ def main():
     evolve_p.add_argument("--dim", type=int, default=256, help="Dimension for add/widen")
     evolve_p.add_argument("--activation", default="", help="Activation function for swap_activation")
     evolve_p.add_argument("--layer-type", default="linear", help="Layer type for add_layer")
+
+    # --- ussi feed ---
+    feed_p = subparsers.add_parser("feed", help="Submit training data (free: 5/day, contributor: unlimited)")
+    feed_p.add_argument("--text", "-t", help="Inline text to submit")
+    feed_p.add_argument("--file", "-f", dest="file_path", help="Read text from file")
+    feed_p.add_argument("--source", "-s", default="agent", help="Label the data source (default: 'agent')")
+    feed_p.add_argument("--generate", action="store_true", help="Generate text via inference, then feed it")
+    feed_p.add_argument("--model", "-m", default="openclaw-default", help="Model to use for generation (with --generate)")
+    feed_p.add_argument("--samples", "-n", type=int, default=1, help="Number of samples to generate (default: 1)")
 
     # --- ussi vote ---
     vote_p = subparsers.add_parser("vote", help="Vote on a proposal (always free, earns credits)")
@@ -279,6 +288,37 @@ def main():
             print(f"Voted {args.decision} on proposal {args.proposal}")
             print("(+1 contribution credit earned)")
         _out(result, use_json)
+
+    elif args.command == "feed":
+        agent = Agent(node_api_url=args.node_url)
+        try:
+            if args.generate:
+                result = agent.generate_training_data(
+                    prompt=args.text or "Generate training text.",
+                    model=args.model,
+                    n_samples=args.samples,
+                )
+                if not use_json:
+                    print(f"Generated {result['samples_generated']} sample(s), {result['total_tokens']} tokens")
+                _out(result, use_json)
+            else:
+                text = args.text
+                if args.file_path:
+                    with open(args.file_path, "r") as f:
+                        text = f.read()
+                if not text:
+                    print("ERROR: provide --text or --file", file=sys.stderr)
+                    sys.exit(1)
+                result = agent.feed(text=text, source=args.source)
+                if not use_json:
+                    print(f"Data submitted: {result.get('tokens', '?')} tokens, {result.get('sequences', '?')} sequences")
+                _out(result, use_json)
+        except RateLimitExceeded as e:
+            if use_json:
+                _out(e.to_dict(), True)
+            else:
+                print(f"ERROR: {e}", file=sys.stderr)
+            sys.exit(1)
 
     elif args.command == "serve":
         from .server import run_server

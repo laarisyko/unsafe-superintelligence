@@ -187,6 +187,44 @@ async fn handle_connection(
             }
         }
 
+        ("POST", "/data/submit") => {
+            let body_start = request.find("\r\n\r\n").map(|i| i + 4).unwrap_or(n);
+            let body_str = &request[body_start..];
+            match serde_json::from_str::<DataSubmitRequest>(body_str) {
+                Ok(req) => {
+                    if let Some(ref eng) = engine {
+                        match eng.load_data(&req.text, &req.source).await {
+                            Ok(resp) => {
+                                let response = serde_json::json!({
+                                    "status": "ok",
+                                    "tokens": resp.tokens,
+                                    "sequences": resp.sequences,
+                                });
+                                ("200 OK", response.to_string())
+                            }
+                            Err(e) => {
+                                let response = serde_json::json!({
+                                    "status": "error",
+                                    "error": format!("engine load_data failed: {}", e),
+                                });
+                                ("200 OK", response.to_string())
+                            }
+                        }
+                    } else {
+                        let response = serde_json::json!({
+                            "status": "error",
+                            "error": "engine bridge not connected",
+                        });
+                        ("200 OK", response.to_string())
+                    }
+                }
+                Err(e) => (
+                    "400 Bad Request",
+                    serde_json::json!({"error": e.to_string()}).to_string(),
+                ),
+            }
+        }
+
         _ => ("404 Not Found", serde_json::json!({"error": "not found"}).to_string()),
     };
 
@@ -211,6 +249,13 @@ struct InferRequest {
     request_id: String,
     model_id: String,
     prompt: String,
+}
+
+#[derive(Deserialize)]
+struct DataSubmitRequest {
+    text: String,
+    #[serde(default)]
+    source: String,
 }
 
 fn base64_decode(input: &str) -> Vec<u8> {
