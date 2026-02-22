@@ -1,6 +1,6 @@
 """Credit system: non-transferable incentive credits for the network.
 
-Credits are the internal incentive mechanism for OpenClaw. They are:
+Credits are the internal incentive mechanism for USSI. They are:
 - EARNED by contributing (compute, data, voting, uptime)
 - SPENT on inference (priority access to the model)
 - NON-TRANSFERABLE (tied to peer identity, can't be traded)
@@ -49,6 +49,8 @@ class CreditAction(str, Enum):
     DATA_CONTRIBUTION = "data_contribution"
     VOTE_CAST = "vote_cast"
     UPTIME_BONUS = "uptime_bonus"
+    VOTE_DEPOSIT = "vote_deposit"
+    VOTE_REFUND = "vote_refund"
     # Spending actions.
     INFERENCE_STANDARD = "inference_standard"
     INFERENCE_PRIORITY = "inference_priority"
@@ -94,6 +96,11 @@ class CreditConfig:
     # Starting credits for new peers (welcome bonus).
     welcome_bonus: float = 50.0
 
+    # Vote deposit / refund (skin in the game).
+    vote_deposit: float = 0.5
+    vote_refund_accurate: float = 1.5
+    vote_refund_inaccurate: float = 0.0
+
 
 @dataclass
 class CreditTransaction:
@@ -125,6 +132,8 @@ class PeerCreditAccount:
     # Free tier tracking.
     free_requests_this_hour: int = 0
     free_hour_start: float = 0.0
+    # Pending vote deposits (proposal_id -> deposit amount).
+    pending_vote_deposits: Dict[str, float] = field(default_factory=dict)
     # Transaction history (last N).
     transactions: List[CreditTransaction] = field(default_factory=list)
 
@@ -277,7 +286,8 @@ class CreditLedger:
     def earn_vote(self, peer_id: str, proposal_id: str = "") -> float:
         """Award credits for voting on an architecture proposal.
 
-        Returns credits earned.
+        Also charges the vote deposit for skin-in-the-game.
+        Returns credits earned (the base vote reward).
         """
         account = self._get_or_create(peer_id)
         self._apply_decay(account)
@@ -295,7 +305,78 @@ class CreditLedger:
             f"Architecture vote: {proposal_id}" if proposal_id else "Architecture vote",
         )
 
+        # Also charge deposit if proposal_id is provided.
+        if proposal_id:
+            self.charge_vote_deposit(peer_id, proposal_id)
+
         return earned
+
+    def charge_vote_deposit(self, peer_id: str, proposal_id: str) -> float:
+        """Charge a vote deposit for skin-in-the-game.
+
+        If the peer has sufficient balance, deducts vote_deposit.
+        If insufficient, charges 0 (free-tier vote, no future bonus).
+        Records the deposit in pending_vote_deposits.
+
+        Returns the amount deposited.
+        """
+        account = self._get_or_create(peer_id)
+        self._apply_decay(account)
+
+        deposit = self.config.vote_deposit
+        if account.raw_balance >= deposit:
+            account.raw_balance -= deposit
+            account.total_spent += deposit
+            self._total_credits_spent += deposit
+            account.pending_vote_deposits[proposal_id] = deposit
+
+            self._record_transaction(
+                account,
+                CreditAction.VOTE_DEPOSIT,
+                -deposit,
+                f"Vote deposit for {proposal_id}",
+            )
+            return deposit
+        else:
+            # Free-tier vote: no deposit, no future bonus.
+            account.pending_vote_deposits[proposal_id] = 0.0
+            return 0.0
+
+    def settle_vote(
+        self, peer_id: str, proposal_id: str, was_accurate: bool
+    ) -> float:
+        """Settle a vote deposit after a proposal outcome is known.
+
+        Accurate voters (approved a good mutation or rejected a bad one)
+        get vote_refund_accurate. Inaccurate voters get vote_refund_inaccurate.
+
+        Returns the refund amount (0 if no deposit was made).
+        """
+        account = self._get_or_create(peer_id)
+        deposit = account.pending_vote_deposits.pop(proposal_id, None)
+        if deposit is None:
+            return 0.0  # No deposit for this proposal.
+        if deposit == 0.0:
+            return 0.0  # Free-tier vote, no refund.
+
+        if was_accurate:
+            refund = self.config.vote_refund_accurate
+        else:
+            refund = self.config.vote_refund_inaccurate
+
+        if refund > 0:
+            account.raw_balance += refund
+            account.total_earned += refund
+            self._total_credits_minted += refund
+
+        self._record_transaction(
+            account,
+            CreditAction.VOTE_REFUND,
+            refund,
+            f"Vote {'accurate' if was_accurate else 'inaccurate'} for {proposal_id}",
+        )
+
+        return refund
 
     # --- Spending ---
 

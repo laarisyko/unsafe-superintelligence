@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "engine")
 
 import torch
 
-from openclaw_engine.credits import (
+from ussi_engine.credits import (
     CreditLedger,
     CreditConfig,
     InferenceGate,
@@ -30,8 +30,8 @@ from openclaw_engine.credits import (
     SpendResult,
     PeerCreditAccount,
 )
-from openclaw_engine.network import TrainingNetwork, NetworkConfig
-from openclaw_engine.data.downloader import get_sample_text
+from ussi_engine.network import TrainingNetwork, NetworkConfig
+from ussi_engine.data.downloader import get_sample_text
 
 
 # === Credit Ledger Core Tests ===
@@ -483,6 +483,124 @@ def test_transaction_history():
 # === Network Integration Tests ===
 
 
+# === Vote Deposit / Refund Tests ===
+
+
+def test_vote_deposit_charged():
+    """Vote deposit is charged from peer balance."""
+    config = CreditConfig(
+        welcome_bonus=100.0,
+        vote_deposit=0.5,
+        decay_enabled=False,
+    )
+    ledger = CreditLedger(config)
+
+    deposit = ledger.charge_vote_deposit("peer-1", "prop-1")
+    assert abs(deposit - 0.5) < 0.01
+    assert abs(ledger.get_balance("peer-1") - 99.5) < 0.01
+    account = ledger.get_account("peer-1")
+    assert "prop-1" in account.pending_vote_deposits
+    assert abs(account.pending_vote_deposits["prop-1"] - 0.5) < 0.01
+    print(f"  Vote deposit charged: {deposit}, balance={ledger.get_balance('peer-1'):.1f}")
+
+
+def test_vote_deposit_zero_for_broke_peer():
+    """Broke peer gets zero deposit (free-tier vote)."""
+    config = CreditConfig(
+        welcome_bonus=0.0,
+        vote_deposit=0.5,
+        decay_enabled=False,
+    )
+    ledger = CreditLedger(config)
+
+    deposit = ledger.charge_vote_deposit("broke-peer", "prop-1")
+    assert deposit == 0.0
+    assert ledger.get_balance("broke-peer") == 0.0
+    account = ledger.get_account("broke-peer")
+    assert account.pending_vote_deposits["prop-1"] == 0.0
+    print(f"  Broke peer deposit: {deposit}")
+
+
+def test_vote_settle_accurate_gets_bonus():
+    """Accurate voter gets deposit refund + bonus."""
+    config = CreditConfig(
+        welcome_bonus=100.0,
+        vote_deposit=0.5,
+        vote_refund_accurate=1.5,
+        vote_refund_inaccurate=0.0,
+        decay_enabled=False,
+    )
+    ledger = CreditLedger(config)
+
+    ledger.charge_vote_deposit("peer-1", "prop-1")
+    balance_after_deposit = ledger.get_balance("peer-1")
+
+    refund = ledger.settle_vote("peer-1", "prop-1", was_accurate=True)
+    assert abs(refund - 1.5) < 0.01
+    balance_after_refund = ledger.get_balance("peer-1")
+    # Net: -0.5 deposit + 1.5 refund = +1.0 profit
+    assert abs(balance_after_refund - (balance_after_deposit + 1.5)) < 0.01
+    print(f"  Accurate refund: {refund}, net profit: {balance_after_refund - 100.0:.1f}")
+
+
+def test_vote_settle_inaccurate_forfeits():
+    """Inaccurate voter forfeits deposit (no refund)."""
+    config = CreditConfig(
+        welcome_bonus=100.0,
+        vote_deposit=0.5,
+        vote_refund_accurate=1.5,
+        vote_refund_inaccurate=0.0,
+        decay_enabled=False,
+    )
+    ledger = CreditLedger(config)
+
+    ledger.charge_vote_deposit("peer-1", "prop-1")
+    balance_after_deposit = ledger.get_balance("peer-1")  # 99.5
+
+    refund = ledger.settle_vote("peer-1", "prop-1", was_accurate=False)
+    assert refund == 0.0
+    balance_after_refund = ledger.get_balance("peer-1")
+    assert abs(balance_after_refund - balance_after_deposit) < 0.01  # No change
+    print(f"  Inaccurate refund: {refund}, balance unchanged at {balance_after_refund:.1f}")
+
+
+def test_vote_settle_no_deposit_noop():
+    """Settling a vote with no deposit is a noop."""
+    config = CreditConfig(welcome_bonus=100.0, decay_enabled=False)
+    ledger = CreditLedger(config)
+
+    refund = ledger.settle_vote("peer-1", "nonexistent-prop", was_accurate=True)
+    assert refund == 0.0
+    assert abs(ledger.get_balance("peer-1") - 100.0) < 0.01
+    print("  No-deposit settle: noop")
+
+
+def test_earn_vote_backward_compatibility():
+    """earn_vote still works and charges deposit when proposal_id given."""
+    config = CreditConfig(
+        welcome_bonus=100.0,
+        earn_vote=2.0,
+        vote_deposit=0.5,
+        decay_enabled=False,
+    )
+    ledger = CreditLedger(config)
+
+    earned = ledger.earn_vote("peer-1", "prop-1")
+    assert abs(earned - 2.0) < 0.01
+
+    # Balance should be 100 + 2 (earned) - 0.5 (deposit) = 101.5
+    balance = ledger.get_balance("peer-1")
+    assert abs(balance - 101.5) < 0.01
+
+    account = ledger.get_account("peer-1")
+    assert "prop-1" in account.pending_vote_deposits
+    assert account.votes_cast == 1
+    print(f"  Backward compat: earned={earned}, balance={balance:.1f}")
+
+
+# === Network Integration Tests ===
+
+
 def test_network_credits_integration():
     """Credits are wired into the training network."""
     torch.manual_seed(42)
@@ -588,6 +706,13 @@ if __name__ == "__main__":
         test_network_stats,
         test_peer_summary,
         test_transaction_history,
+        # Vote deposit / refund.
+        test_vote_deposit_charged,
+        test_vote_deposit_zero_for_broke_peer,
+        test_vote_settle_accurate_gets_bonus,
+        test_vote_settle_inaccurate_forfeits,
+        test_vote_settle_no_deposit_noop,
+        test_earn_vote_backward_compatibility,
         # Network integration.
         test_network_credits_integration,
         test_network_stats_include_credits,

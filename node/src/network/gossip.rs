@@ -2,21 +2,21 @@ use anyhow::Result;
 use libp2p::gossipsub::{self, IdentTopic, TopicHash};
 use tracing::info;
 
-// Well-known gossipsub topic names for the OpenClaw protocol.
+// Well-known gossipsub topic names for the USSI protocol.
 // These are GLOBAL topics -- all peers subscribe to them.
-pub const TOPIC_HEARTBEAT: &str = "openclaw/heartbeat";
-pub const TOPIC_SHARD_MAP: &str = "openclaw/shard-map";
-pub const TOPIC_TRAINING: &str = "openclaw/training";
-pub const TOPIC_GRADIENT: &str = "openclaw/gradient";
-pub const TOPIC_CHECKPOINT: &str = "openclaw/checkpoint";
-pub const TOPIC_ARCHITECTURE: &str = "openclaw/architecture";
+pub const TOPIC_HEARTBEAT: &str = "ussi/heartbeat";
+pub const TOPIC_SHARD_MAP: &str = "ussi/shard-map";
+pub const TOPIC_TRAINING: &str = "ussi/training";
+pub const TOPIC_GRADIENT: &str = "ussi/gradient";
+pub const TOPIC_CHECKPOINT: &str = "ussi/checkpoint";
+pub const TOPIC_ARCHITECTURE: &str = "ussi/architecture";
 
 // Cluster-scoped topic prefixes. Peers only subscribe to topics for
 // their own cluster, preventing gossip floods across 1M+ peers.
-pub const TOPIC_CLUSTER_GRADIENT_PREFIX: &str = "openclaw/cluster-gradient/";
-pub const TOPIC_CLUSTER_HEARTBEAT_PREFIX: &str = "openclaw/cluster-heartbeat/";
-pub const TOPIC_CLUSTER_SYNC_PREFIX: &str = "openclaw/cluster-sync/";
-pub const TOPIC_LEADER_GRADIENT_PREFIX: &str = "openclaw/leader-gradient/";
+pub const TOPIC_CLUSTER_GRADIENT_PREFIX: &str = "ussi/cluster-gradient/";
+pub const TOPIC_CLUSTER_HEARTBEAT_PREFIX: &str = "ussi/cluster-heartbeat/";
+pub const TOPIC_CLUSTER_SYNC_PREFIX: &str = "ussi/cluster-sync/";
+pub const TOPIC_LEADER_GRADIENT_PREFIX: &str = "ussi/leader-gradient/";
 
 /// All global topics the node subscribes to.
 pub fn all_topics() -> Vec<IdentTopic> {
@@ -32,7 +32,7 @@ pub fn all_topics() -> Vec<IdentTopic> {
 
 /// Generate cluster-scoped topics for a specific cluster at a given level.
 /// Peers subscribe to these instead of the global gradient topic to limit
-/// gossip scope. E.g. "openclaw/cluster-gradient/L0-C42" for level 0, cluster 42.
+/// gossip scope. E.g. "ussi/cluster-gradient/L0-C42" for level 0, cluster 42.
 pub fn cluster_topics(level: u32, cluster_id: u32) -> Vec<IdentTopic> {
     let suffix = format!("L{}-C{}", level, cluster_id);
     vec![
@@ -52,7 +52,7 @@ pub fn leader_topics(level: u32, super_cluster_id: u32) -> Vec<IdentTopic> {
     ))]
 }
 
-/// Subscribe to all OpenClaw gossipsub topics. Returns the topic hashes.
+/// Subscribe to all USSI gossipsub topics. Returns the topic hashes.
 pub fn subscribe_all(gossipsub: &mut gossipsub::Behaviour) -> Result<Vec<TopicHash>> {
     let mut hashes = Vec::new();
     for topic in all_topics() {
@@ -153,13 +153,13 @@ mod tests {
     #[test]
     fn topic_domain_cluster() {
         assert_eq!(
-            topic_domain("openclaw/cluster-gradient/L0-C42"),
+            topic_domain("ussi/cluster-gradient/L0-C42"),
             "cluster_gradient"
         );
         assert_eq!(
-            topic_domain("openclaw/leader-gradient/L1-SC7"),
+            topic_domain("ussi/leader-gradient/L1-SC7"),
             "leader_gradient"
         );
-        assert_eq!(topic_domain("openclaw/heartbeat"), "heartbeat");
+        assert_eq!(topic_domain("ussi/heartbeat"), "heartbeat");
     }
 }

@@ -1,4 +1,4 @@
-"""Drop-in OpenAI client replacement backed by the OpenClaw network.
+"""Drop-in OpenAI client replacement backed by the USSI network.
 
 Usage (identical to the openai package)::
 
@@ -98,7 +98,7 @@ class Model:
     id: str = ""
     object: str = "model"
     created: int = 0
-    owned_by: str = "openclaw-network"
+    owned_by: str = "ussi-network"
 
 
 @dataclass
@@ -270,7 +270,7 @@ class _Models:
                 id=m.get("id", ""),
                 object=m.get("object", "model"),
                 created=m.get("created", 0),
-                owned_by=m.get("owned_by", "openclaw-network"),
+                owned_by=m.get("owned_by", "ussi-network"),
             ))
         return ModelList(data=models)
 
@@ -278,7 +278,7 @@ class _Models:
 # ---- Main client ----
 
 class OpenAI:
-    """Drop-in replacement for openai.OpenAI backed by the OpenClaw network.
+    """Drop-in replacement for openai.OpenAI backed by the USSI network.
 
     Usage::
 

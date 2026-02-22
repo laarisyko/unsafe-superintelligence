@@ -19,7 +19,7 @@ architecture evolution, the model is literally a living organism that
 grows, learns, and adapts through collective intelligence.
 
 Usage:
-    genesis = GenesisTracker(model_id="openclaw-v0")
+    genesis = GenesisTracker(model_id="ussi-v0")
     genesis.record_birth(model_params=38_000_000, genome_hash="abc123")
 
     # After each training round:
@@ -449,7 +449,7 @@ class GenesisTracker:
     every mutation, every training round is recorded.
     """
 
-    def __init__(self, model_id: str = "openclaw"):
+    def __init__(self, model_id: str = "ussi"):
         self.model_id = model_id
         self.birth_time: float = time.time()
         self.timeline: List[GenesisEvent] = []
@@ -750,7 +750,7 @@ class GenesisTracker:
             f"Model: {self.model_id} | Age: {age} | "
             f"Rounds: {self._total_rounds:,} | "
             f"Peers: {self._peak_peers}\n"
-            f"#OpenClaw #PeoplesAI #DecentralizedAI"
+            f"#USSI #PeoplesAI #DecentralizedAI"
         )
 
     def get_status(self) -> dict:

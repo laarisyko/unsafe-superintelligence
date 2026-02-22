@@ -1,4 +1,4 @@
-# OpenClaw Threat Model
+# USSI Threat Model
 
 ## 1. Threat Categories
 

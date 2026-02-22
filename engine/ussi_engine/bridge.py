@@ -254,7 +254,7 @@ class NodeBridge:
         """Initialize a Kickstart model from config."""
         data = json.loads(payload)
         config = KickstartConfig(
-            model_id=data.get("model_id", "openclaw-v0"),
+            model_id=data.get("model_id", "ussi-v0"),
             hidden_dim=data.get("hidden_dim", 256),
             n_layers=data.get("n_layers", 6),
             n_heads=data.get("n_heads", 4),

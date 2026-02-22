@@ -91,3 +91,40 @@ Stop the local P2P node.
 
 ### `ussi node logs`
 Print recent node logs.
+
+## Skill Scripts For Local Model Runtime
+
+### `scripts/model-download.sh`
+Download current/latest trained model artifact for local execution.
+Defaults to GGUF format for LM Studio compatibility.
+
+Examples:
+- `bash scripts/model-download.sh`
+- `bash scripts/model-download.sh --model llama-7b`
+- `bash scripts/model-download.sh --url https://example.com/model.gguf`
+- `bash scripts/model-download.sh --lmstudio-import`
+
+### `scripts/model-download-lmstudio.sh`
+Download GGUF models via LM Studio native downloader (`lms get --gguf`).
+
+Examples:
+- `bash scripts/model-download-lmstudio.sh --model lmstudio-community/Qwen2.5-7B-Instruct-GGUF --quant Q4_K_M`
+- `bash scripts/model-download-lmstudio.sh --model lmstudio-community/Llama-3.2-3B-Instruct-GGUF`
+
+### `scripts/model-run-local.sh`
+Run local inference from a downloaded model.
+
+Examples:
+- `bash scripts/model-run-local.sh --model-path /path/to/model.gguf --prompt "Hello"`
+- `bash scripts/model-run-local.sh --model-path /path/to/hf-model-dir --prompt "Hello"`
+
+Backends:
+- `llama.cpp` (`llama-cli`) for GGUF
+- `transformers` + `torch` for HuggingFace model dirs/repo IDs
+
+### `scripts/model-import-lmstudio.sh`
+Import a GGUF file into LM Studio using `lms import`.
+
+Examples:
+- `bash scripts/model-import-lmstudio.sh --model-file /path/to/model.gguf --copy`
+- `bash scripts/model-import-lmstudio.sh --model-file /path/to/model.gguf --hard-link`

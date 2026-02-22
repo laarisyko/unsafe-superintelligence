@@ -23,23 +23,23 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "engine")
 import torch
 import torch.nn as nn
 
-from openclaw_engine.bridge import DirectBridgeHandler
-from openclaw_engine.model.shard import ModelShard, ShardConfig, split_model
-from openclaw_engine.model.checkpoint import CheckpointStore
-from openclaw_engine.training.trainer import LocalTrainer, TrainingConfig
-from openclaw_engine.training.byzantine import (
+from ussi_engine.bridge import DirectBridgeHandler
+from ussi_engine.model.shard import ModelShard, ShardConfig, split_model
+from ussi_engine.model.checkpoint import CheckpointStore
+from ussi_engine.training.trainer import LocalTrainer, TrainingConfig
+from ussi_engine.training.byzantine import (
     AggregationMethod,
     ByzantineConfig,
     robust_aggregate,
     score_gradients,
 )
-from openclaw_engine.training.round_coordinator import (
+from ussi_engine.training.round_coordinator import (
     RoundCoordinator,
     RoundConfig,
     RoundPhase,
 )
-from openclaw_engine.training.cluster import PeerCapacity
-from openclaw_engine.training.reputation import (
+from ussi_engine.training.cluster import PeerCapacity
+from ussi_engine.training.reputation import (
     ReputationTracker,
     BAN_THRESHOLD,
     SUSPECT_THRESHOLD,

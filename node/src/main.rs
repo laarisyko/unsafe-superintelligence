@@ -24,7 +24,7 @@ async fn main() -> Result<()> {
         .init();
 
     let config = NodeConfig::from(args);
-    info!("Starting OpenClaw node on port {}", config.listen_port);
+    info!("Starting USSI node on port {}", config.listen_port);
 
     // Ensure data directory exists.
     std::fs::create_dir_all(&config.data_dir)?;

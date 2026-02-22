@@ -21,22 +21,22 @@ import json
 
 import torch
 
-from openclaw_engine.network import (
+from ussi_engine.network import (
     TrainingNetwork,
     NetworkConfig,
     NetworkStats,
     PeerInfo,
     MODEL_CONFIGS,
 )
-from openclaw_engine.kickstart import KickstartConfig
-from openclaw_engine.data.downloader import (
+from ussi_engine.kickstart import KickstartConfig
+from ussi_engine.data.downloader import (
     get_sample_text,
     SAMPLE_TEXTS,
     GUTENBERG_BOOKS,
     list_gutenberg,
 )
-from openclaw_engine.dashboard import DashboardState
-from openclaw_engine.training.byzantine import AggregationMethod
+from ussi_engine.dashboard import DashboardState
+from ussi_engine.training.byzantine import AggregationMethod
 
 
 # === Sample Data ===
@@ -369,7 +369,7 @@ def test_dashboard_subscriber():
 
 def test_cli_parser():
     """CLI argument parser works."""
-    from openclaw_engine.cli import main
+    from ussi_engine.cli import main
     import argparse
 
     # Just verify it doesn't crash with --help.
@@ -398,9 +398,9 @@ def test_stats_dict():
 def test_bridge_end_to_end():
     """Full bridge lifecycle: init model, load data, train, get grads, set grads, infer."""
     import asyncio
-    from openclaw_engine.bridge import NodeBridge
-    from openclaw_engine.inference.server import InferenceServer
-    from openclaw_engine.kickstart import Kickstart, KickstartConfig
+    from ussi_engine.bridge import NodeBridge
+    from ussi_engine.inference.server import InferenceServer
+    from ussi_engine.kickstart import Kickstart, KickstartConfig
 
     torch.manual_seed(42)
 
@@ -481,8 +481,8 @@ def test_bridge_end_to_end():
 def test_bridge_init_model():
     """Bridge can initialize a model from config."""
     import asyncio
-    from openclaw_engine.bridge import NodeBridge
-    from openclaw_engine.inference.server import InferenceServer
+    from ussi_engine.bridge import NodeBridge
+    from ussi_engine.inference.server import InferenceServer
 
     inf_server = InferenceServer()
     bridge = NodeBridge(inf_server)

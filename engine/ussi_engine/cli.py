@@ -1,14 +1,14 @@
-"""OpenClaw CLI: one command to train the people's LLM.
+"""USSI CLI: one command to train the people's LLM.
 
 Usage:
-    openclaw join                    # Join network, start training
-    openclaw join --data ~/texts/    # Contribute local text data
-    openclaw join --model medium     # Choose model size
-    openclaw status                  # Show training stats
-    openclaw generate "Once upon"    # Generate text from current model
-    openclaw dataset download        # Download public domain training data
-    openclaw dataset list            # Show available datasets
-    openclaw dashboard               # Start live web dashboard
+    ussi join                    # Join network, start training
+    ussi join --data ~/texts/    # Contribute local text data
+    ussi join --model medium     # Choose model size
+    ussi status                  # Show training stats
+    ussi generate "Once upon"    # Generate text from current model
+    ussi dataset download        # Download public domain training data
+    ussi dataset list            # Show available datasets
+    ussi dashboard               # Start live web dashboard
 """
 
 from __future__ import annotations
@@ -87,12 +87,12 @@ def cmd_join(args):
         # Try to load from default data dir.
         local_paths = get_local_data_paths()
         if local_paths:
-            print(f"\n  Loading {len(local_paths)} files from ~/.openclaw/data/...")
+            print(f"\n  Loading {len(local_paths)} files from ~/.ussi/data/...")
             network.load_data(local_paths)
         else:
             print("\n  No data found. Loading built-in samples...")
-            print("  Tip: openclaw dataset download  -- get public domain books")
-            print("  Tip: openclaw join --data ~/my-texts/  -- use your own data")
+            print("  Tip: ussi dataset download  -- get public domain books")
+            print("  Tip: ussi join --data ~/my-texts/  -- use your own data")
             sample = get_sample_text("all")
             network.load_text(sample)
 
@@ -198,7 +198,7 @@ def cmd_status(args):
     network = TrainingNetwork(config)
 
     # Try to load latest checkpoint.
-    ckpt_dir = os.path.join(os.path.expanduser("~"), ".openclaw", "checkpoints")
+    ckpt_dir = os.path.join(os.path.expanduser("~"), ".ussi", "checkpoints")
     if os.path.exists(ckpt_dir):
         ckpts = sorted(
             [f for f in os.listdir(ckpt_dir) if f.endswith(".pt")],
@@ -231,7 +231,7 @@ def cmd_generate(args):
     network = TrainingNetwork(config)
 
     # Try to load latest checkpoint.
-    ckpt_dir = os.path.join(os.path.expanduser("~"), ".openclaw", "checkpoints")
+    ckpt_dir = os.path.join(os.path.expanduser("~"), ".ussi", "checkpoints")
     if os.path.exists(ckpt_dir):
         ckpts = sorted(
             [f for f in os.listdir(ckpt_dir) if f.endswith(".pt")],
@@ -267,7 +267,7 @@ def cmd_dataset(args):
         books = args.books if args.books else None
         paths = download_gutenberg(books=books, progress_callback=progress)
         print(f"\n  Downloaded {len(paths)} books to {get_data_dir()}/gutenberg/")
-        print("  Run 'openclaw join' to start training on this data.")
+        print("  Run 'ussi join' to start training on this data.")
 
     elif args.dataset_action == "list":
         books = list_gutenberg()
@@ -288,7 +288,7 @@ def cmd_dataset(args):
         print(get_data_dir())
 
     else:
-        print("  Usage: openclaw dataset [download|list|path]")
+        print("  Usage: ussi dataset [download|list|path]")
 
 
 def cmd_generate_data(args):
@@ -341,7 +341,7 @@ def cmd_dashboard(args):
     from .dashboard import DashboardServer, DashboardState
 
     state = DashboardState()
-    state.model_id = "openclaw"
+    state.model_id = "ussi"
     state.model_size = "waiting"
 
     print(f"  Dashboard starting on http://localhost:{args.port}")
@@ -377,13 +377,13 @@ def _start_dashboard_thread(network, port: int):
 
 def main():
     parser = argparse.ArgumentParser(
-        prog="openclaw",
-        description="OpenClaw: Decentralized LLM Training -- The People's AI",
+        prog="ussi",
+        description="USSI: Decentralized LLM Training -- The People's AI",
     )
     parser.add_argument("-v", "--verbose", action="store_true")
     subparsers = parser.add_subparsers(dest="command")
 
-    # --- openclaw join ---
+    # --- ussi join ---
     join_p = subparsers.add_parser("join", help="Join the network and start training")
     join_p.add_argument("--model", "-m", default="medium",
                         choices=["tiny", "small", "medium", "large"],
@@ -407,18 +407,18 @@ def main():
     join_p.add_argument("--dpo", action="store_true",
                         help="Enable DPO rounds (requires --teacher)")
 
-    # --- openclaw status ---
+    # --- ussi status ---
     status_p = subparsers.add_parser("status", help="Show training status")
     status_p.add_argument("--json", action="store_true")
 
-    # --- openclaw generate ---
+    # --- ussi generate ---
     gen_p = subparsers.add_parser("generate", help="Generate text")
     gen_p.add_argument("prompt", help="Text prompt")
     gen_p.add_argument("--model", "-m", default="medium")
     gen_p.add_argument("--max-tokens", type=int, default=100)
     gen_p.add_argument("--temperature", type=float, default=0.8)
 
-    # --- openclaw dataset ---
+    # --- ussi dataset ---
     ds_p = subparsers.add_parser("dataset", help="Manage training datasets")
     ds_sub = ds_p.add_subparsers(dest="dataset_action")
     dl_p = ds_sub.add_parser("download", help="Download public domain datasets")
@@ -426,7 +426,7 @@ def main():
     ds_sub.add_parser("list", help="List available datasets")
     ds_sub.add_parser("path", help="Show data directory path")
 
-    # --- openclaw generate-data ---
+    # --- ussi generate-data ---
     gd_p = subparsers.add_parser("generate-data", help="Generate synthetic training data")
     gd_p.add_argument("--teacher", "-t", required=True,
                        help="Teacher model (format: provider:model)")
@@ -437,7 +437,7 @@ def main():
     gd_p.add_argument("--output", "-o", type=str, default="",
                        help="Output file path")
 
-    # --- openclaw dashboard ---
+    # --- ussi dashboard ---
     dash_p = subparsers.add_parser("dashboard", help="Start live web dashboard")
     dash_p.add_argument("--port", type=int, default=8080)
     dash_p.add_argument("--host", default="0.0.0.0")
@@ -449,10 +449,10 @@ def main():
         _print_banner()
         parser.print_help()
         print("\n  Quick start:")
-        print("    openclaw join                     # Start training")
-        print("    openclaw dataset download          # Get training data")
-        print("    openclaw join --data ~/texts/      # Train on your data")
-        print("    openclaw generate 'Once upon a'    # Generate text")
+        print("    ussi join                     # Start training")
+        print("    ussi dataset download          # Get training data")
+        print("    ussi join --data ~/texts/      # Train on your data")
+        print("    ussi generate 'Once upon a'    # Generate text")
         sys.exit(0)
 
     commands = {

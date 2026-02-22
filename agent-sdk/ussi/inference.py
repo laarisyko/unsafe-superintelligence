@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class InferenceClient:
-    """Client for running inference on models in the OpenClaw network.
+    """Client for running inference on models in the USSI network.
 
     Rate limits are enforced by the Agent class (not here) so that
     InferenceClient stays a pure network client.

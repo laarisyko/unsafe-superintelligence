@@ -8,7 +8,7 @@ Provides real-time training metrics for the public dashboard:
     - Model info
 
 The dashboard is intentionally simple (no framework dependencies) so any
-peer can run it. The public dashboard at openclaw.org aggregates from
+peer can run it. The public dashboard at ussi.org aggregates from
 multiple peers.
 """
 
@@ -294,7 +294,7 @@ _DASHBOARD_HTML = """<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>OpenClaw - People's LLM Training Dashboard</title>
+<title>USSI - People's LLM Training Dashboard</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
@@ -353,7 +353,7 @@ canvas { width: 100%; height: 200px; }
 </head>
 <body>
 <div class="header">
-  <h1><span class="status"></span>OpenClaw - People's LLM</h1>
+  <h1><span class="status"></span>USSI - People's LLM</h1>
   <div class="subtitle">Decentralized training in progress. Owned by everyone, controlled by no one.</div>
 </div>
 
@@ -435,7 +435,7 @@ canvas { width: 100%; height: 200px; }
 </div>
 
 <div class="footer">
-  OpenClaw: BitTorrent for AI training. A million volunteers training one model, owned by everyone, controlled by no one.
+  USSI: BitTorrent for AI training. A million volunteers training one model, owned by everyone, controlled by no one.
 </div>
 
 <script>

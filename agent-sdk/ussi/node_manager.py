@@ -106,7 +106,7 @@ class NodeManager:
 
         cmd.extend([
             DOCKER_IMAGE,
-            "openclaw-node",
+            "ussi-node",
             "--port", "9000",
             "--api-port", "50051",
             "--gpu-memory-mb", str(self.gpu_memory_mb),
@@ -134,7 +134,7 @@ class NodeManager:
 
     def _start_binary(self) -> Dict:
         """Start node via local binary."""
-        binary = shutil.which("openclaw-node")
+        binary = shutil.which("ussi-node")
         if not binary:
             return {"status": "error", "error": "No node binary found. Install via Docker or build from source."}
 

@@ -39,21 +39,24 @@ from .model.checkpoint import CheckpointStore
 from .training.byzantine import AggregationMethod, ByzantineConfig, robust_aggregate
 from .training.reputation import ReputationTracker
 from .training.sybil import AdmissionController, solve, verify
+from .architecture.genome import ArchitectureGenome
+from .architecture.evolution import EvolutionProtocol, FitnessEvaluator, ProposalOutcomeTracker
+from .architecture.evolution_ledger import EvolutionLedger
 
 logger = logging.getLogger(__name__)
 
 
 # Seed nodes for initial network bootstrap.
 SEED_NODES = [
-    "/dns4/seed1.openclaw.org/tcp/9000",
-    "/dns4/seed2.openclaw.org/tcp/9000",
-    "/dns4/seed3.openclaw.org/tcp/9000",
+    "/dns4/seed1.ussi.org/tcp/9000",
+    "/dns4/seed2.ussi.org/tcp/9000",
+    "/dns4/seed3.ussi.org/tcp/9000",
 ]
 
 # Default model configs by size tier.
 MODEL_CONFIGS = {
     "tiny": KickstartConfig(
-        model_id="openclaw-tiny",
+        model_id="ussi-tiny",
         hidden_dim=64,
         n_layers=2,
         n_heads=2,
@@ -62,7 +65,7 @@ MODEL_CONFIGS = {
         steps_per_round=10,
     ),
     "small": KickstartConfig(
-        model_id="openclaw-small",
+        model_id="ussi-small",
         hidden_dim=256,
         n_layers=6,
         n_heads=4,
@@ -71,7 +74,7 @@ MODEL_CONFIGS = {
         steps_per_round=20,
     ),
     "medium": KickstartConfig(
-        model_id="openclaw-medium",
+        model_id="ussi-medium",
         hidden_dim=512,
         n_layers=12,
         n_heads=8,
@@ -81,7 +84,7 @@ MODEL_CONFIGS = {
         learning_rate=3e-4,
     ),
     "large": KickstartConfig(
-        model_id="openclaw-large",
+        model_id="ussi-large",
         hidden_dim=1024,
         n_layers=24,
         n_heads=16,
@@ -193,7 +196,7 @@ class TrainingNetwork:
         self.reputation = ReputationTracker()
         self.admission = AdmissionController(base_difficulty=config.pow_difficulty)
         checkpoint_dir = config.checkpoint_dir or os.path.join(
-            os.path.expanduser("~"), ".openclaw", "checkpoints"
+            os.path.expanduser("~"), ".ussi", "checkpoints"
         )
         self.checkpoints = CheckpointStore(checkpoint_dir)
 
@@ -212,6 +215,27 @@ class TrainingNetwork:
         self.credits = CreditLedger()
         self.inference_gate = InferenceGate(self.credits)
         self.credits.record_connect(config.peer_id)
+
+        # Architecture governance -- stake-weighted voting, outcome tracking, audit ledger.
+        self.evolution_ledger = EvolutionLedger()
+        self.evolution_evaluator = FitnessEvaluator()
+        self.outcome_tracker = ProposalOutcomeTracker(
+            reputation=self.reputation,
+            ledger=self.credits,
+            evaluator=self.evolution_evaluator,
+        )
+        self.evolution = EvolutionProtocol(
+            peer_id=config.peer_id,
+            current_genome=ArchitectureGenome.simple_transformer(
+                model_id=model_config.model_id,
+                n_layers=model_config.n_layers,
+                hidden_dim=model_config.hidden_dim,
+            ),
+            evaluator=self.evolution_evaluator,
+            get_reputation=self.reputation.get_score,
+            outcome_tracker=self.outcome_tracker,
+            ledger=self.evolution_ledger,
+        )
 
         # Stats tracking.
         self._stats = NetworkStats(
@@ -379,6 +403,9 @@ class TrainingNetwork:
                 self.genesis.age_str,
                 round_id,
             )
+
+        # Tick outcome tracker for governance settlement.
+        self.outcome_tracker.tick_round(self.evolution.current_genome)
 
         # Award credits for this training round.
         rep_score = self.reputation.get_score(self.config.peer_id)

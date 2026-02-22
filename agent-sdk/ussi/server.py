@@ -1,4 +1,4 @@
-"""OpenAI-compatible HTTP server for the OpenClaw network.
+"""OpenAI-compatible HTTP server for the USSI network.
 
 Serves the same endpoints as the OpenAI API so that any OpenAI SDK,
 LangChain, LlamaIndex, or other tool can use USSI as a drop-in replacement.
@@ -80,7 +80,7 @@ class OpenAIHandler(BaseHTTPRequestHandler):
     def _handle_models(self):
         model_ids = self.agent.models()
         if not model_ids:
-            model_ids = ["openclaw-default"]
+            model_ids = ["ussi-default"]
         self._json_response(200, make_model_id_list(model_ids))
 
     def _handle_chat_completions(self):
@@ -88,7 +88,7 @@ class OpenAIHandler(BaseHTTPRequestHandler):
         if body is None:
             return
 
-        model = body.get("model", "openclaw-default")
+        model = body.get("model", "ussi-default")
         messages = body.get("messages", [])
         max_tokens = body.get("max_tokens") or body.get("max_completion_tokens") or 256
         temperature = body.get("temperature", 0.7)
@@ -134,7 +134,7 @@ class OpenAIHandler(BaseHTTPRequestHandler):
         if body is None:
             return
 
-        model = body.get("model", "openclaw-default")
+        model = body.get("model", "ussi-default")
         prompt = body.get("prompt", "")
         max_tokens = body.get("max_tokens", 256)
         temperature = body.get("temperature", 0.7)
@@ -300,7 +300,7 @@ def run_server(
     Args:
         port: Port to listen on.
         host: Host to bind to.
-        node_url: URL of the local OpenClaw P2P node.
+        node_url: URL of the local USSI P2P node.
         contribute: If True, contribute compute (contributor tier).
         gpu_memory: GPU memory to advertise.
         accelerator: Accelerator type.

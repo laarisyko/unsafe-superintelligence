@@ -1,7 +1,7 @@
 //! Bridge between the Rust P2P node and the Python ML engine.
 //!
 //! The bridge communicates with the Python engine over a local HTTP connection
-//! (engine/openclaw_engine/bridge.py:HttpBridgeServer). In production, this
+//! (engine/ussi_engine/bridge.py:HttpBridgeServer). In production, this
 //! would use PyO3 for direct FFI, eliminating the HTTP overhead.
 //!
 //! Message flow:

@@ -17,7 +17,7 @@ impl VrfOutput {
     /// participating peer IDs.
     pub fn compute(round_id: &str, sorted_peer_ids: &[String]) -> Self {
         let mut hasher = Sha256::new();
-        hasher.update(b"openclaw-vrf-v1:");
+        hasher.update(b"ussi-vrf-v1:");
         hasher.update(round_id.as_bytes());
         hasher.update(b":");
         for pid in sorted_peer_ids {

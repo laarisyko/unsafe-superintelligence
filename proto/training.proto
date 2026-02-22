@@ -1,13 +1,13 @@
 syntax = "proto3";
 
-package openclaw.training;
+package ussi.training;
 
 import "messages.proto";
 
 // Peer-to-peer training coordination service.
 service TrainingService {
   // Propose a new training round to a specific peer (supplement to gossip).
-  rpc ProposeRound (openclaw.TrainingProposal) returns (ProposeResponse);
+  rpc ProposeRound (ussi.TrainingProposal) returns (ProposeResponse);
 
   // Exchange gradients during ring all-reduce.
   rpc ExchangeGradients (GradientChunk) returns (GradientChunk);
@@ -35,7 +35,7 @@ message GradientChunk {
   uint32 total_chunks = 4;
   bytes data = 5;              // compressed gradient data
   string compression = 6;     // "none", "topk", "fp16", "topk+fp16"
-  openclaw.PeerId sender = 7;
+  ussi.PeerId sender = 7;
   uint32 ring_position = 8;   // sender's position in the all-reduce ring
 }
 

@@ -5,15 +5,15 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "engine"))
 
-from openclaw_engine.teacher import (
+from ussi_engine.teacher import (
     TeacherConfig, LocalTeacher, create_teacher, parse_teacher_string, TokenBucket,
 )
-from openclaw_engine.data.synthetic import (
+from ussi_engine.data.synthetic import (
     SyntheticConfig, SyntheticDataGenerator, TOPIC_REGISTRY, ngram_overlap,
 )
-from openclaw_engine.data.pipeline import TextDataPipeline, DataConfig
-from openclaw_engine.data.tokenizer import Tokenizer, TokenizerConfig
-from openclaw_engine.kickstart import Kickstart, KickstartConfig
+from ussi_engine.data.pipeline import TextDataPipeline, DataConfig
+from ussi_engine.data.tokenizer import Tokenizer, TokenizerConfig
+from ussi_engine.kickstart import Kickstart, KickstartConfig
 
 SAMPLE_TEXT = "Alice was beginning to get very tired of sitting by her sister. " * 20
 

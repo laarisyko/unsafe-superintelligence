@@ -21,19 +21,19 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "engine")
 import torch
 import torch.nn as nn
 
-from openclaw_engine.model.shard import split_model, ModelShard, ShardConfig
-from openclaw_engine.model.pipeline import PipelineExecutor
-from openclaw_engine.training.trainer import LocalTrainer, TrainingConfig
-from openclaw_engine.training.allreduce import RingAllReduce
-from openclaw_engine.training.compression import TopKCompressor
-from openclaw_engine.training.hierarchical import (
+from ussi_engine.model.shard import split_model, ModelShard, ShardConfig
+from ussi_engine.model.pipeline import PipelineExecutor
+from ussi_engine.training.trainer import LocalTrainer, TrainingConfig
+from ussi_engine.training.allreduce import RingAllReduce
+from ussi_engine.training.compression import TopKCompressor
+from ussi_engine.training.hierarchical import (
     HierarchicalAllReduce,
     ClusterConfig,
     assign_clusters_vrf,
     compute_scaling_stats,
 )
-from openclaw_engine.training.cluster import ClusterManager, PeerCapacity
-from openclaw_engine.inference.server import InferenceServer, InferenceRequest
+from ussi_engine.training.cluster import ClusterManager, PeerCapacity
+from ussi_engine.inference.server import InferenceServer, InferenceRequest
 
 
 def make_model(n_layers: int = 8, hidden_dim: int = 64) -> nn.Module:

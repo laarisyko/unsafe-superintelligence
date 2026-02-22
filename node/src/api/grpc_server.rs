@@ -27,7 +27,7 @@ pub struct RoundInfo {
     pub started_at_ms: u64,
 }
 
-/// Simple JSON-over-HTTP API server for the OpenClaw node.
+/// Simple JSON-over-HTTP API server for the USSI node.
 ///
 /// In a full implementation this would use tonic gRPC with the protobuf
 /// service definitions. For the initial implementation we use a lightweight

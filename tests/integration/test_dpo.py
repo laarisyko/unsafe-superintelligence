@@ -8,11 +8,11 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "engine")
 import torch
 import torch.nn.functional as F
 
-from openclaw_engine.teacher import TeacherConfig, LocalTeacher
-from openclaw_engine.training.rl_from_ai import (
+from ussi_engine.teacher import TeacherConfig, LocalTeacher
+from ussi_engine.training.rl_from_ai import (
     DPOConfig, DPOKickstart, PreferenceDataCollector, PreferencePair, dpo_loss,
 )
-from openclaw_engine.kickstart import Kickstart, KickstartConfig
+from ussi_engine.kickstart import Kickstart, KickstartConfig
 
 SAMPLE_TEXT = "Alice was beginning to get very tired of sitting by her sister. " * 20
 TINY = dict(model_id="t", hidden_dim=32, n_layers=1, n_heads=2,

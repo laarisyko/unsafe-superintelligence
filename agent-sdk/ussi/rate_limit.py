@@ -1,4 +1,4 @@
-"""Rate limiter for the OpenClaw network.
+"""Rate limiter for the USSI network.
 
 Two tiers:
   - **Free tier**: Anyone can use inference/training but with rate limits.

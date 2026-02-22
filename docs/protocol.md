@@ -1,8 +1,8 @@
-# OpenClaw Network Protocol Specification
+# USSI Network Protocol Specification
 
 ## Overview
 
-The OpenClaw protocol enables fully decentralized training and inference of
+The USSI protocol enables fully decentralized training and inference of
 large language models. There is no master node. All coordination emerges from
 the protocol rules, cryptographic primitives, and CRDTs.
 
@@ -11,7 +11,7 @@ the protocol rules, cryptographic primitives, and CRDTs.
 - **Library:** libp2p
 - **Transport:** TCP with Noise encryption
 - **Multiplexing:** Yamux
-- **Identification:** Identify protocol (`/openclaw/0.1.0`)
+- **Identification:** Identify protocol (`/ussi/0.1.0`)
 
 ## 2. Peer Discovery
 
@@ -43,11 +43,11 @@ All protocol messages are broadcast via gossipsub on well-known topics:
 
 | Topic                    | Purpose                           |
 |--------------------------|-----------------------------------|
-| `openclaw/heartbeat`     | Peer liveness and capacity ads    |
-| `openclaw/shard-map`     | CRDT shard map updates            |
-| `openclaw/training`      | Training round proposals/joins    |
-| `openclaw/gradient`      | Gradient readiness announcements  |
-| `openclaw/checkpoint`    | Checkpoint completion notices     |
+| `ussi/heartbeat`     | Peer liveness and capacity ads    |
+| `ussi/shard-map`     | CRDT shard map updates            |
+| `ussi/training`      | Training round proposals/joins    |
+| `ussi/gradient`      | Gradient readiness announcements  |
+| `ussi/checkpoint`    | Checkpoint completion notices     |
 
 ## 4. Shard Map (CRDT)
 
@@ -58,7 +58,7 @@ The shard map tracks which peer holds which model layers. It is a
 - **Value:** `(peer_id, lamport_timestamp)`
 - **Merge rule:** Higher timestamp wins
 
-The shard map is replicated across all peers via the `openclaw/shard-map`
+The shard map is replicated across all peers via the `ussi/shard-map`
 gossipsub topic. Because it is a CRDT, it converges without coordination.
 
 ## 5. Training Protocol
@@ -83,7 +83,7 @@ PROPOSE -> JOIN -> ASSIGN -> COMPUTE -> AGGREGATE -> APPLY -> CHECKPOINT
 
 3. **ASSIGN:** After the deadline, each peer independently computes:
    - Sort all JOIN peer_ids lexicographically
-   - Compute VRF: `SHA-256("openclaw-vrf-v1:" || round_id || ":" || peers)`
+   - Compute VRF: `SHA-256("ussi-vrf-v1:" || round_id || ":" || peers)`
    - Derive a permutation from the VRF hash
    - Assign data partitions and ring positions from the permutation
 
@@ -134,7 +134,7 @@ PROPOSE -> JOIN -> ASSIGN -> COMPUTE -> AGGREGATE -> APPLY -> CHECKPOINT
 The VRF ensures deterministic, tamper-resistant work assignment:
 
 ```
-VRF(round_id, peers) = SHA-256("openclaw-vrf-v1:" || round_id || ":" || join(peers, ","))
+VRF(round_id, peers) = SHA-256("ussi-vrf-v1:" || round_id || ":" || join(peers, ","))
 ```
 
 Properties:

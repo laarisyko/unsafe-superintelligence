@@ -3,8 +3,8 @@
 ## Context
 
 [OpenClaw](https://github.com/openclaw/openclaw) is an open-source autonomous AI
-agent platform (145K+ GitHub stars). Agents extend their capabilities through three
-mechanisms:
+agent platform. Agents can be extended through skills, plugins, and webhooks.
+For USSI, we standardize on the skill path as the default integration.
 
 | Mechanism   | Effort   | What it does                                              |
 |-------------|----------|-----------------------------------------------------------|
@@ -12,8 +12,8 @@ mechanisms:
 | **Plugin**  | Medium   | TypeScript module registers native tools in the Gateway    |
 | **Webhook** | Low      | External events push notifications to the agent            |
 
-Our goal: **any OpenClaw agent should be able to join the decentralized LLM network
-with zero code changes to OpenClaw itself.**
+Our goal: **any OpenClaw agent should be able to join the USSI network using
+just a skill, with zero code changes to OpenClaw itself.**
 
 ---
 
@@ -110,18 +110,18 @@ to vote on a peer's architecture proposal.
 
 ### What this requires from our codebase
 
-The skill scripts shell out to our `openclaw` CLI. The CLI needs to be
+The skill scripts shell out to our `ussi` CLI. The CLI needs to be
 complete and produce machine-readable (JSON) output. Changes needed:
 
 **a) CLI enhancements (`agent-sdk/ussi/cli.py`)**
 
 Add these missing commands:
-- `openclaw node start` -- Start a P2P node (wraps Docker or binary)
-- `openclaw node stop` -- Stop the local node
-- `openclaw evolve` -- Propose an architecture mutation
-- `openclaw vote` -- Vote on an architecture proposal
-- `openclaw models` -- List available models on the network
-- `openclaw rounds` -- List active training rounds
+- `ussi node start` -- Start a P2P node (wraps Docker or binary)
+- `ussi node stop` -- Stop the local node
+- `ussi evolve` -- Propose an architecture mutation
+- `ussi vote` -- Vote on an architecture proposal
+- `ussi models` -- List available models on the network
+- `ussi rounds` -- List active training rounds
 
 Add a global `--json` flag so all commands output structured JSON (critical
 for agent parsing).
@@ -142,7 +142,7 @@ manually running Docker commands.
 
 **c) Auto-detection of compute resources**
 
-Add `openclaw detect` command that auto-detects:
+Add `ussi detect` command that auto-detects:
 - Available GPU memory (via `nvidia-smi` or `torch.cuda`)
 - CPU cores and RAM
 - Network bandwidth estimate
@@ -151,11 +151,12 @@ This lets the agent self-configure without asking the user for specs.
 
 ---
 
-## 2. OpenClaw Plugin (Deeper Integration)
+## 2. OpenClaw Plugin (Optional, Not Required)
 
 For users who want tighter integration, we provide a TypeScript plugin that
 registers native tools in the OpenClaw Gateway. The agent can then use
 `openclaw_network_join`, `openclaw_network_train`, etc. without needing bash.
+This is explicitly optional; USSI contribution should work as a normal skill.
 
 ### Files to create
 
@@ -200,9 +201,9 @@ OpenClaw's validated config.
 
 ---
 
-## 3. Webhook Bridge (Event-Driven Participation)
+## 3. Webhook Bridge (Optional, Not Required)
 
-Our P2P network generates events that should proactively notify OpenClaw
+Our P2P network can generate events that proactively notify OpenClaw
 agents. We add a webhook dispatcher to the Rust node that POSTs to
 configured endpoints when events occur.
 

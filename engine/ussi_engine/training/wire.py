@@ -5,7 +5,7 @@ the P2P gossip or direct-stream channels. Supports optional compression
 and integrity verification.
 
 Wire format (v1):
-    [4 bytes] magic: "OCGR" (OpenClaw GRadient)
+    [4 bytes] magic: "OCGR" (USSI GRadient)
     [1 byte]  version: 0x01
     [1 byte]  flags: bit 0 = compressed, bit 1 = signed
     [32 bytes] merkle_root of the gradient data

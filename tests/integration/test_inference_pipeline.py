@@ -19,8 +19,8 @@ def _make_model(n_layers=6, hidden_dim=64):
 
 def test_single_shard_inference():
     """Test inference with a single shard (no pipeline)."""
-    from openclaw_engine.model.shard import split_model
-    from openclaw_engine.inference.server import InferenceServer, InferenceRequest
+    from ussi_engine.model.shard import split_model
+    from ussi_engine.inference.server import InferenceServer, InferenceRequest
 
     model = _make_model(n_layers=4, hidden_dim=64)
     shards = split_model(model, "test-model", 1)
@@ -38,8 +38,8 @@ def test_single_shard_inference():
 
 def test_pipeline_inference():
     """Test inference across a 4-stage pipeline."""
-    from openclaw_engine.model.shard import split_model
-    from openclaw_engine.model.pipeline import PipelineExecutor
+    from ussi_engine.model.shard import split_model
+    from ussi_engine.model.pipeline import PipelineExecutor
 
     model = _make_model(n_layers=8, hidden_dim=64)
     shards = split_model(model, "pipeline-model", 4)
@@ -53,8 +53,8 @@ def test_pipeline_inference():
 
 def test_pipeline_inference_executor():
     """Test the PipelineInferenceExecutor with local shards."""
-    from openclaw_engine.model.shard import split_model
-    from openclaw_engine.inference.pipeline_exec import PipelineInferenceExecutor
+    from ussi_engine.model.shard import split_model
+    from ussi_engine.inference.pipeline_exec import PipelineInferenceExecutor
 
     model = _make_model(n_layers=4, hidden_dim=512)
     shards = split_model(model, "exec-test", 2)
@@ -80,8 +80,8 @@ def test_pipeline_inference_executor():
 
 def test_inference_server_load_tracking():
     """Verify the inference server tracks load correctly."""
-    from openclaw_engine.inference.server import InferenceServer, InferenceRequest
-    from openclaw_engine.model.shard import split_model
+    from ussi_engine.inference.server import InferenceServer, InferenceRequest
+    from ussi_engine.model.shard import split_model
 
     model = _make_model(n_layers=2, hidden_dim=64)
     shards = split_model(model, "load-test", 1)
@@ -103,7 +103,7 @@ def test_inference_server_load_tracking():
 
 def test_activation_serialization_roundtrip():
     """Verify tensor serialization/deserialization for pipeline communication."""
-    from openclaw_engine.model.pipeline import serialize_tensor, deserialize_tensor
+    from ussi_engine.model.pipeline import serialize_tensor, deserialize_tensor
 
     original = torch.randn(2, 128, 512)
     data = serialize_tensor(original)

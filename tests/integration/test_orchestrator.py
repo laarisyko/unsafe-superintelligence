@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "engine")
 import torch
 import torch.nn as nn
 
-from openclaw_engine.training.sybil import (
+from ussi_engine.training.sybil import (
     AdmissionController,
     PowChallenge,
     solve,
@@ -24,27 +24,27 @@ from openclaw_engine.training.sybil import (
     DIFFICULTY_EASY,
     DIFFICULTY_MEDIUM,
 )
-from openclaw_engine.training.wire import (
+from ussi_engine.training.wire import (
     encode,
     decode,
     estimate_wire_size,
     WireMessage,
 )
-from openclaw_engine.training.compression import (
+from ussi_engine.training.compression import (
     TopKCompressor,
     FP16Compressor,
     CompressorChain,
 )
-from openclaw_engine.training.orchestrator import (
+from ussi_engine.training.orchestrator import (
     TrainingOrchestrator,
     OrchestratorConfig,
     RoundResult,
 )
-from openclaw_engine.training.byzantine import AggregationMethod, ByzantineConfig
-from openclaw_engine.training.cluster import PeerCapacity
-from openclaw_engine.training.reputation import ReputationTracker
-from openclaw_engine.model.shard import split_model
-from openclaw_engine.model.checkpoint import CheckpointStore
+from ussi_engine.training.byzantine import AggregationMethod, ByzantineConfig
+from ussi_engine.training.cluster import PeerCapacity
+from ussi_engine.training.reputation import ReputationTracker
+from ussi_engine.model.shard import split_model
+from ussi_engine.model.checkpoint import CheckpointStore
 
 
 def _make_model(n_layers=4, hidden_dim=16):

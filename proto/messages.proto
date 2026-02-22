@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package openclaw;
+package ussi;
 
 // Unique identifier for a peer in the network.
 message PeerId {

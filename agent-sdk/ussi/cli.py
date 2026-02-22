@@ -90,7 +90,7 @@ def main():
     feed_p.add_argument("--file", "-f", dest="file_path", help="Read text from file")
     feed_p.add_argument("--source", "-s", default="agent", help="Label the data source (default: 'agent')")
     feed_p.add_argument("--generate", action="store_true", help="Generate text via inference, then feed it")
-    feed_p.add_argument("--model", "-m", default="openclaw-default", help="Model to use for generation (with --generate)")
+    feed_p.add_argument("--model", "-m", default="ussi-default", help="Model to use for generation (with --generate)")
     feed_p.add_argument("--samples", "-n", type=int, default=1, help="Number of samples to generate (default: 1)")
 
     # --- ussi vote ---

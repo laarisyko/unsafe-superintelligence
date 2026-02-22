@@ -12,12 +12,12 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "engine")
 import torch
 import torch.nn as nn
 
-from openclaw_engine.architecture.genome import (
+from ussi_engine.architecture.genome import (
     ArchitectureGenome,
     LayerGene,
     LayerType,
 )
-from openclaw_engine.architecture.mutations import (
+from ussi_engine.architecture.mutations import (
     AddLayerMutation,
     RemoveLayerMutation,
     WidenLayerMutation,
@@ -26,14 +26,18 @@ from openclaw_engine.architecture.mutations import (
     MutationGenerator,
     Mutation,
 )
-from openclaw_engine.architecture.evolution import (
+from ussi_engine.architecture.evolution import (
     ArchitectureProposal,
     ProposalVote,
     EvolutionProtocol,
     FitnessEvaluator,
     VoteDecision,
+    PendingOutcome,
+    ProposalOutcomeTracker,
 )
-from openclaw_engine.architecture.migration import WeightMigrator
+from ussi_engine.architecture.migration import WeightMigrator
+from ussi_engine.credits import CreditLedger, CreditConfig
+from ussi_engine.training.reputation import ReputationTracker
 
 
 # ---- Genome tests ----
@@ -685,7 +689,7 @@ def test_skip_connection_compilation():
     # Outputs should differ because skip connection adds to the output.
     # They might be equal by chance but very unlikely with random weights.
     # Just verify the skip model has the GenomeNetwork class.
-    from openclaw_engine.architecture.genome import GenomeNetwork
+    from ussi_engine.architecture.genome import GenomeNetwork
     assert isinstance(model_yes, GenomeNetwork), \
         "Model with skip connections should be GenomeNetwork"
 
@@ -715,6 +719,442 @@ def test_should_approve_rejects_neg_inf():
     evaluator = FitnessEvaluator()
     decision = evaluator.should_approve(-1.0, float("-inf"))
     assert decision == VoteDecision.REJECT
+
+
+# ---- Stake-weighted voting tests ----
+
+
+def test_weighted_voting_high_rep_wins():
+    """High-reputation approvers override low-reputation rejector."""
+    genome = ArchitectureGenome(
+        model_id="weighted-test",
+        genes=[
+            LayerGene(LayerType.LINEAR, 32, 64),
+            LayerGene(LayerType.LINEAR, 64, 32),
+        ],
+    )
+
+    # Reputation: peer-1 has high rep (0.9), peer-2 has low rep (0.1).
+    rep_scores = {"peer-0": 0.5, "peer-1": 0.9, "peer-2": 0.1}
+
+    protocol = EvolutionProtocol(
+        peer_id="peer-0",
+        current_genome=genome.clone(),
+        approval_quorum=0.6,
+        min_voters=2,
+        get_reputation=lambda pid: rep_scores.get(pid, 0.5),
+    )
+
+    mutation = AddLayerMutation(
+        position=1, gene=LayerGene(LayerType.NORM, 64, 64),
+    )
+    proposal = protocol.propose_mutation(mutation)
+
+    # High-rep peer approves, low-rep peer rejects.
+    protocol.receive_vote(ProposalVote(
+        proposal_id=proposal.proposal_id,
+        voter_id="peer-1",
+        decision=VoteDecision.APPROVE,
+    ))
+    protocol.receive_vote(ProposalVote(
+        proposal_id=proposal.proposal_id,
+        voter_id="peer-2",
+        decision=VoteDecision.REJECT,
+    ))
+
+    result = protocol.tally_votes(proposal.proposal_id)
+    # approve_weight=0.9, reject_weight=0.1, total=1.0+vote from peer-0
+    # peer-0 proposed, so their vote is also in (abstain by default from propose)
+    # Actually, peer-0's vote is from propose_mutation which doesn't auto-vote
+    # We have 2 voters: peer-1(approve, 0.9) and peer-2(reject, 0.1)
+    # total_weight = 1.0, approve_rate = 0.9/1.0 = 0.9 >= 0.6 -> accepted
+    assert result is not None, "High-rep approver should win"
+
+
+def test_weighted_voting_low_rep_overruled():
+    """Low-reputation approvers are overruled by high-reputation rejector."""
+    genome = ArchitectureGenome(
+        model_id="overrule-test",
+        genes=[
+            LayerGene(LayerType.LINEAR, 32, 64),
+            LayerGene(LayerType.LINEAR, 64, 32),
+        ],
+    )
+
+    rep_scores = {"peer-1": 0.1, "peer-2": 0.1, "peer-3": 0.9}
+
+    protocol = EvolutionProtocol(
+        peer_id="peer-0",
+        current_genome=genome.clone(),
+        approval_quorum=0.6,
+        min_voters=2,
+        get_reputation=lambda pid: rep_scores.get(pid, 0.5),
+    )
+
+    mutation = AddLayerMutation(
+        position=1, gene=LayerGene(LayerType.NORM, 64, 64),
+    )
+    proposal = protocol.propose_mutation(mutation)
+
+    # Two low-rep peers approve, one high-rep rejects.
+    protocol.receive_vote(ProposalVote(
+        proposal_id=proposal.proposal_id,
+        voter_id="peer-1",
+        decision=VoteDecision.APPROVE,
+    ))
+    protocol.receive_vote(ProposalVote(
+        proposal_id=proposal.proposal_id,
+        voter_id="peer-2",
+        decision=VoteDecision.APPROVE,
+    ))
+    protocol.receive_vote(ProposalVote(
+        proposal_id=proposal.proposal_id,
+        voter_id="peer-3",
+        decision=VoteDecision.REJECT,
+    ))
+
+    result = protocol.tally_votes(proposal.proposal_id)
+    # approve_weight=0.2, reject_weight=0.9, total=1.1
+    # approval_rate = 0.2/1.1 = 0.18 < 0.6 -> rejected
+    assert result is None, "High-rep rejector should overrule low-rep approvers"
+
+
+def test_weighted_voting_fallback_without_callback():
+    """Without get_reputation, all peers get weight 0.5 (flat voting)."""
+    genome = ArchitectureGenome(
+        model_id="fallback-test",
+        genes=[
+            LayerGene(LayerType.LINEAR, 32, 64),
+            LayerGene(LayerType.LINEAR, 64, 32),
+        ],
+    )
+
+    protocol = EvolutionProtocol(
+        peer_id="peer-0",
+        current_genome=genome.clone(),
+        approval_quorum=0.5,
+        min_voters=2,
+        get_reputation=None,  # No reputation callback.
+    )
+
+    mutation = AddLayerMutation(
+        position=1, gene=LayerGene(LayerType.NORM, 64, 64),
+    )
+    proposal = protocol.propose_mutation(mutation)
+
+    protocol.receive_vote(ProposalVote(
+        proposal_id=proposal.proposal_id,
+        voter_id="peer-1",
+        decision=VoteDecision.APPROVE,
+    ))
+    protocol.receive_vote(ProposalVote(
+        proposal_id=proposal.proposal_id,
+        voter_id="peer-2",
+        decision=VoteDecision.REJECT,
+    ))
+
+    result = protocol.tally_votes(proposal.proposal_id)
+    # Both get weight 0.5. approve=0.5, reject=0.5, rate=0.5 >= 0.5 -> accepted
+    assert result is not None, "Flat voting with 50/50 should pass at quorum=0.5"
+
+
+def test_abstain_dilutes_weighted_vote():
+    """High-rep abstainer dilutes approval rate."""
+    genome = ArchitectureGenome(
+        model_id="abstain-test",
+        genes=[
+            LayerGene(LayerType.LINEAR, 32, 64),
+            LayerGene(LayerType.LINEAR, 64, 32),
+        ],
+    )
+
+    rep_scores = {"peer-1": 0.5, "peer-2": 0.9}
+
+    protocol = EvolutionProtocol(
+        peer_id="peer-0",
+        current_genome=genome.clone(),
+        approval_quorum=0.6,
+        min_voters=2,
+        get_reputation=lambda pid: rep_scores.get(pid, 0.5),
+    )
+
+    mutation = AddLayerMutation(
+        position=1, gene=LayerGene(LayerType.NORM, 64, 64),
+    )
+    proposal = protocol.propose_mutation(mutation)
+
+    # peer-1 approves (weight 0.5), peer-2 abstains (weight 0.9)
+    protocol.receive_vote(ProposalVote(
+        proposal_id=proposal.proposal_id,
+        voter_id="peer-1",
+        decision=VoteDecision.APPROVE,
+    ))
+    protocol.receive_vote(ProposalVote(
+        proposal_id=proposal.proposal_id,
+        voter_id="peer-2",
+        decision=VoteDecision.ABSTAIN,
+    ))
+
+    result = protocol.tally_votes(proposal.proposal_id)
+    # approve=0.5, total=1.4, rate=0.5/1.4=0.357 < 0.6 -> rejected
+    assert result is None, "High-rep abstainer should dilute approval below quorum"
+
+
+# ---- Outcome tracker tests ----
+
+
+def _make_simple_genome():
+    return ArchitectureGenome(
+        model_id="outcome-test",
+        genes=[
+            LayerGene(LayerType.LINEAR, 32, 64),
+            LayerGene(LayerType.LINEAR, 64, 32),
+        ],
+    )
+
+
+def test_outcome_tracker_rewards_good_mutation():
+    """Good mutation: proposer gets credits, accurate voters get refund."""
+    config = CreditConfig(
+        welcome_bonus=100.0,
+        vote_deposit=0.5,
+        vote_refund_accurate=1.5,
+        vote_refund_inaccurate=0.0,
+        decay_enabled=False,
+    )
+    credit_ledger = CreditLedger(config)
+    reputation = ReputationTracker()
+    evaluator = FitnessEvaluator()
+
+    tracker = ProposalOutcomeTracker(
+        reputation=reputation,
+        ledger=credit_ledger,
+        evaluator=evaluator,
+        rounds_to_settle=2,
+        proposer_reward_credits=5.0,
+        proposer_penalty_reputation=0.05,
+    )
+
+    genome = _make_simple_genome()
+
+    # Simulate an accepted proposal with deposits.
+    proposal = ArchitectureProposal(
+        proposal_id="prop-good",
+        proposer_id="proposer-1",
+        model_id="test",
+        current_genome_hash=genome.hash(),
+        mutation=AddLayerMutation(1, LayerGene(LayerType.NORM, 64, 64)),
+        new_genome=genome,
+    )
+
+    # Charge deposits for voters.
+    credit_ledger.charge_vote_deposit("voter-approve", "prop-good")
+    credit_ledger.charge_vote_deposit("voter-reject", "prop-good")
+
+    voter_decisions = {
+        "voter-approve": VoteDecision.APPROVE,
+        "voter-reject": VoteDecision.REJECT,
+    }
+    tracker.register_accepted(proposal, voter_decisions, baseline_fitness=-1.0)
+
+    proposer_balance_before = credit_ledger.get_balance("proposer-1")
+
+    # Tick enough rounds (genome fitness is the same -> good mutation since >= baseline).
+    for _ in range(3):
+        tracker.tick_round(genome)
+
+    # Proposer should have gotten bonus credits.
+    proposer_balance_after = credit_ledger.get_balance("proposer-1")
+    assert proposer_balance_after > proposer_balance_before
+
+    # Approve-voter (accurate) should have gotten refund.
+    approve_account = credit_ledger.get_account("voter-approve")
+    # Check that a VOTE_REFUND transaction exists.
+    refund_txns = [
+        t for t in approve_account.transactions
+        if t.action.value == "vote_refund" and "accurate" in t.description
+    ]
+    assert len(refund_txns) > 0
+
+
+def test_outcome_tracker_penalizes_bad_mutation():
+    """Bad mutation: proposer gets reputation penalty, inaccurate voters forfeit."""
+    config = CreditConfig(
+        welcome_bonus=100.0,
+        vote_deposit=0.5,
+        vote_refund_accurate=1.5,
+        vote_refund_inaccurate=0.0,
+        decay_enabled=False,
+    )
+    credit_ledger = CreditLedger(config)
+    reputation = ReputationTracker()
+    evaluator = FitnessEvaluator()
+
+    tracker = ProposalOutcomeTracker(
+        reputation=reputation,
+        ledger=credit_ledger,
+        evaluator=evaluator,
+        rounds_to_settle=2,
+        proposer_reward_credits=5.0,
+        proposer_penalty_reputation=0.05,
+    )
+
+    genome = _make_simple_genome()
+
+    # Set initial proposer reputation.
+    reputation.record_round_result("proposer-1", completed=True)
+    initial_rep = reputation.get_score("proposer-1")
+
+    # Simulate accepted proposal with very bad baseline (higher than current).
+    proposal = ArchitectureProposal(
+        proposal_id="prop-bad",
+        proposer_id="proposer-1",
+        model_id="test",
+        current_genome_hash=genome.hash(),
+        mutation=AddLayerMutation(1, LayerGene(LayerType.NORM, 64, 64)),
+        new_genome=genome,
+    )
+
+    credit_ledger.charge_vote_deposit("voter-approve", "prop-bad")
+    credit_ledger.charge_vote_deposit("voter-reject", "prop-bad")
+
+    voter_decisions = {
+        "voter-approve": VoteDecision.APPROVE,
+        "voter-reject": VoteDecision.REJECT,
+    }
+    # Set baseline_fitness very high so current genome looks worse -> bad mutation.
+    tracker.register_accepted(proposal, voter_decisions, baseline_fitness=999.0)
+
+    for _ in range(3):
+        tracker.tick_round(genome)
+
+    # Proposer reputation should decrease.
+    final_rep = reputation.get_score("proposer-1")
+    assert final_rep < initial_rep
+
+    # Reject-voter (accurate for bad mutation) should get accurate refund.
+    reject_account = credit_ledger.get_account("voter-reject")
+    refund_txns = [
+        t for t in reject_account.transactions
+        if t.action.value == "vote_refund" and "accurate" in t.description
+    ]
+    assert len(refund_txns) > 0
+
+    # Approve-voter (inaccurate) should get inaccurate refund (0).
+    approve_account = credit_ledger.get_account("voter-approve")
+    inaccurate_txns = [
+        t for t in approve_account.transactions
+        if t.action.value == "vote_refund" and "inaccurate" in t.description
+    ]
+    assert len(inaccurate_txns) > 0
+
+
+def test_outcome_tracker_unsettled_within_rounds():
+    """No settlement happens before rounds_to_settle."""
+    config = CreditConfig(welcome_bonus=100.0, decay_enabled=False)
+    credit_ledger = CreditLedger(config)
+    reputation = ReputationTracker()
+    evaluator = FitnessEvaluator()
+
+    tracker = ProposalOutcomeTracker(
+        reputation=reputation,
+        ledger=credit_ledger,
+        evaluator=evaluator,
+        rounds_to_settle=5,
+    )
+
+    genome = _make_simple_genome()
+    proposal = ArchitectureProposal(
+        proposal_id="prop-wait",
+        proposer_id="proposer-1",
+        model_id="test",
+        current_genome_hash=genome.hash(),
+        mutation=AddLayerMutation(1, LayerGene(LayerType.NORM, 64, 64)),
+        new_genome=genome,
+    )
+    tracker.register_accepted(proposal, {"v1": VoteDecision.APPROVE}, -1.0)
+
+    # Tick 4 rounds (not enough).
+    for _ in range(4):
+        tracker.tick_round(genome)
+
+    assert len(tracker.pending) == 1, "Should not be settled yet"
+    assert len(tracker.settled) == 0
+
+    # Tick 1 more (now 5 total).
+    tracker.tick_round(genome)
+    assert len(tracker.pending) == 0
+    assert len(tracker.settled) == 1
+
+
+def test_outcome_tracker_integration_with_protocol():
+    """Full flow: proposal -> vote -> tally -> settle through EvolutionProtocol."""
+    config = CreditConfig(
+        welcome_bonus=100.0,
+        vote_deposit=0.5,
+        vote_refund_accurate=1.5,
+        decay_enabled=False,
+    )
+    credit_ledger = CreditLedger(config)
+    reputation = ReputationTracker()
+    evaluator = FitnessEvaluator()
+
+    tracker = ProposalOutcomeTracker(
+        reputation=reputation,
+        ledger=credit_ledger,
+        evaluator=evaluator,
+        rounds_to_settle=1,
+        proposer_reward_credits=5.0,
+    )
+
+    genome = ArchitectureGenome(
+        model_id="integration-test",
+        genes=[
+            LayerGene(LayerType.LINEAR, 32, 64),
+            LayerGene(LayerType.ACTIVATION, 0, 0, activation="relu"),
+            LayerGene(LayerType.LINEAR, 64, 32),
+        ],
+    )
+
+    protocol = EvolutionProtocol(
+        peer_id="peer-0",
+        current_genome=genome.clone(),
+        evaluator=evaluator,
+        approval_quorum=0.5,
+        min_voters=1,
+        get_reputation=reputation.get_score,
+        outcome_tracker=tracker,
+    )
+
+    mutation = AddLayerMutation(
+        position=1, gene=LayerGene(LayerType.NORM, 64, 64),
+    )
+
+    # Charge deposit for the voter.
+    credit_ledger.charge_vote_deposit("peer-1", "")
+
+    proposal = protocol.propose_mutation(mutation)
+
+    # Charge deposit with correct proposal ID.
+    credit_ledger.charge_vote_deposit("peer-1", proposal.proposal_id)
+
+    protocol.receive_vote(ProposalVote(
+        proposal_id=proposal.proposal_id,
+        voter_id="peer-1",
+        decision=VoteDecision.APPROVE,
+    ))
+    accepted = protocol.tally_votes(proposal.proposal_id)
+    assert accepted is not None
+
+    # Outcome tracker should have a pending outcome.
+    assert len(tracker.pending) == 1
+
+    # Tick to settle.
+    for _ in range(2):
+        tracker.tick_round(protocol.current_genome)
+
+    assert len(tracker.pending) == 0
+    assert len(tracker.settled) == 1
 
 
 if __name__ == "__main__":
@@ -754,6 +1194,16 @@ if __name__ == "__main__":
         test_skip_connection_compilation,
         test_fitness_evaluator_rejects_broken,
         test_should_approve_rejects_neg_inf,
+        # Stake-weighted voting tests.
+        test_weighted_voting_high_rep_wins,
+        test_weighted_voting_low_rep_overruled,
+        test_weighted_voting_fallback_without_callback,
+        test_abstain_dilutes_weighted_vote,
+        # Outcome tracker tests.
+        test_outcome_tracker_rewards_good_mutation,
+        test_outcome_tracker_penalizes_bad_mutation,
+        test_outcome_tracker_unsettled_within_rounds,
+        test_outcome_tracker_integration_with_protocol,
     ]
     for test in tests:
         test()

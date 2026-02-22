@@ -1,8 +1,8 @@
-# OpenClaw: Decentralized Peer-to-Peer LLM Training & Inference Network
+# USSI: Decentralized Peer-to-Peer LLM Training & Inference Network
 
 ## Vision
 
-A fully decentralized network where autonomous OpenClaw agents collaborate on
+A fully decentralized network where autonomous USSI agents collaborate on
 training and inference of large language models without any central master node.
 Every peer is equal. Coordination emerges from protocol, not authority.
 
@@ -33,9 +33,9 @@ for discovery and state management.
 
 ## 2. Core Components
 
-### 2.1 Peer Node (`openclaw-node`)
+### 2.1 Peer Node (`ussi-node`)
 
-Each agent runs an `openclaw-node` process that exposes:
+Each agent runs an `ussi-node` process that exposes:
 
 | Layer             | Responsibility                                        |
 |-------------------|-------------------------------------------------------|
@@ -75,7 +75,7 @@ Round lifecycle (no master):
 
 1. PROPOSE  -- Any peer can propose a new training round by
                broadcasting (round_id, data_manifest, hyperparams)
-               to the gossipsub topic "openclaw/training".
+               to the gossipsub topic "ussi/training".
 
 2. JOIN     -- Peers that want to participate reply with a JOIN
                message including their available compute capacity.
@@ -133,7 +133,7 @@ We do NOT need full blockchain-style consensus. We use:
 | ML Framework         | PyTorch                      | Widest ecosystem, good distributed |
 | Serialization        | Protocol Buffers             | Efficient, language-agnostic       |
 | RPC                  | gRPC (tonic for Rust)        | Streaming, bidirectional           |
-| Agent Interface      | Python SDK + CLI             | OpenClaw agents are Python-native  |
+| Agent Interface      | Python SDK + CLI             | USSI agents are Python-native  |
 | Gradient Compression | Top-K sparsification + FP16  | Reduce bandwidth                   |
 | CRDT Library         | automerge-rs or yrs          | Mature Rust CRDTs                  |
 | Checkpointing        | IPFS / local disk            | Content-addressed, decentralized   |
@@ -143,7 +143,7 @@ We do NOT need full blockchain-style consensus. We use:
 ## 4. Project Structure
 
 ```
-openclaw-network/
+ussi-network/
 |-- proto/                        # Protobuf definitions
 |   |-- messages.proto            #   Network messages
 |   |-- inference.proto           #   Inference service
@@ -173,7 +173,7 @@ openclaw-network/
 |   +-- build.rs                  #   Protobuf codegen
 |
 |-- engine/                       # Python: ML engine
-|   |-- openclaw_engine/
+|   |-- ussi_engine/
 |   |   |-- __init__.py
 |   |   |-- model/
 |   |   |   |-- __init__.py
@@ -194,7 +194,7 @@ openclaw-network/
 |   |-- setup.py
 |   +-- pyproject.toml
 |
-|-- agent-sdk/                    # Python: OpenClaw agent SDK
+|-- agent-sdk/                    # Python: USSI agent SDK
 |   |-- ussi/
 |   |   |-- __init__.py
 |   |   |-- agent.py              #   Base agent class
@@ -262,7 +262,7 @@ openclaw-network/
 
 - [ ] Python SDK: `ussi` with simple API
 - [ ] Agent lifecycle: join network, contribute compute, leave gracefully
-- [ ] CLI tooling: `openclaw join`, `openclaw status`, `openclaw infer`
+- [ ] CLI tooling: `ussi join`, `ussi status`, `ussi infer`
 - [ ] Docker compose for local development swarm
 - [ ] Example agents and tutorials
 
@@ -280,15 +280,15 @@ openclaw-network/
 - [x] **Hierarchical all-reduce** -- tree-of-rings gradient aggregation
   - Replaces flat ring (O(N) rounds) with multi-level hierarchy (O(depth * K))
   - For 1M agents: ~4,000 rounds instead of ~2,000,000 (500x speedup)
-  - Implemented in `engine/openclaw_engine/training/hierarchical.py`
+  - Implemented in `engine/ussi_engine/training/hierarchical.py`
 - [x] **Cluster management & supernode election**
   - VRF-based deterministic cluster assignment (no coordinator needed)
   - Automatic leader election (first member of each cluster)
   - Leadership rotates each round via VRF permutation
-  - Implemented in `engine/openclaw_engine/training/cluster.py`
+  - Implemented in `engine/ussi_engine/training/cluster.py`
 - [x] **Gossipsub cluster scoping**
-  - Cluster-local topics (`openclaw/cluster-gradient/L0-C{id}`)
-  - Leader-level topics (`openclaw/leader-gradient/L{level}-SC{id}`)
+  - Cluster-local topics (`ussi/cluster-gradient/L0-C{id}`)
+  - Leader-level topics (`ussi/leader-gradient/L{level}-SC{id}`)
   - Prevents gossip floods across 1M+ peers
   - Implemented in `node/src/network/gossip.rs`
 - [x] **VRF cluster assignment in Rust**
@@ -347,7 +347,7 @@ rings:
 
 ### Why no central master?
 
-| Traditional (centralized)            | OpenClaw (decentralized)              |
+| Traditional (centralized)            | USSI (decentralized)              |
 |--------------------------------------|---------------------------------------|
 | Parameter server coordinates         | Peers self-coordinate via protocol    |
 | Single point of failure              | No single point of failure            |
@@ -395,7 +395,7 @@ rings:
    requests at reasonable latency.
 3. A training round completes with **decentralized gradient aggregation** and
    all peers converge to the same weight state (verified by Merkle root).
-4. An OpenClaw agent can **join the network with 3 lines of Python**:
+4. A USSI agent can **join the network with 3 lines of Python**:
    ```python
    from ussi import Agent
    agent = Agent(bootstrap="/ip4/203.0.113.1/tcp/9000/p2p/QmPeer...")

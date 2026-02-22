@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 class LMConfig:
     """Configuration for a from-scratch language model."""
 
-    model_id: str = "openclaw-lm"
+    model_id: str = "ussi-lm"
     vocab_size: int = 260       # 256 bytes + 4 special tokens
     hidden_dim: int = 256       # Transformer hidden dimension
     n_layers: int = 6           # Number of transformer layers

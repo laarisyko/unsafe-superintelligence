@@ -15,19 +15,19 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "engine")
 import torch
 import torch.nn as nn
 
-from openclaw_engine.training.hierarchical import (
+from ussi_engine.training.hierarchical import (
     HierarchicalAllReduce,
     ClusterConfig,
     ClusterTopology,
     assign_clusters_vrf,
     compute_scaling_stats,
 )
-from openclaw_engine.training.cluster import (
+from ussi_engine.training.cluster import (
     ClusterManager,
     PeerCapacity,
     PeerRole,
 )
-from openclaw_engine.training.allreduce import RingAllReduce
+from ussi_engine.training.allreduce import RingAllReduce
 
 
 def _make_gradients(n_peers: int, hidden_dim: int = 16) -> list:
@@ -360,8 +360,8 @@ def test_communication_rounds_property():
 
 def test_full_hierarchical_training_round():
     """End-to-end: shard model, train, hierarchical aggregate, verify Merkle."""
-    from openclaw_engine.model.shard import split_model
-    from openclaw_engine.training.trainer import LocalTrainer, TrainingConfig
+    from ussi_engine.model.shard import split_model
+    from ussi_engine.training.trainer import LocalTrainer, TrainingConfig
 
     # Create model and replicate across 50 peers (data parallelism).
     n_peers = 50

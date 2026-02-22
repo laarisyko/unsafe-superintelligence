@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "engine")
 
 import torch
 
-from openclaw_engine.genesis import (
+from ussi_engine.genesis import (
     GenesisTracker,
     QualityReport,
     MilestoneType,
@@ -32,8 +32,8 @@ from openclaw_engine.genesis import (
     MILESTONE_DESCRIPTIONS,
     MILESTONE_EMOJI,
 )
-from openclaw_engine.network import TrainingNetwork, NetworkConfig
-from openclaw_engine.data.downloader import get_sample_text
+from ussi_engine.network import TrainingNetwork, NetworkConfig
+from ussi_engine.data.downloader import get_sample_text
 
 
 # === Quality Scoring Tests ===
@@ -335,14 +335,14 @@ def test_tracker_timeline_summary():
 
 def test_shareable_milestone():
     """Shareable milestone string is formatted correctly."""
-    genesis = GenesisTracker("openclaw-v0")
+    genesis = GenesisTracker("ussi-v0")
     genesis.record_birth(model_params=1000)
     genesis.record_round("r0", loss=4.0, sample_text="the man")
 
     ms = genesis.milestones[0]  # Should have LOSS_BELOW_5 at least.
     shareable = genesis.get_shareable_milestone(ms.milestone)
-    assert "openclaw-v0" in shareable
-    assert "#OpenClaw" in shareable
+    assert "ussi-v0" in shareable
+    assert "#USSI" in shareable
     print(f"  Shareable: {shareable[:80]}...")
 
 

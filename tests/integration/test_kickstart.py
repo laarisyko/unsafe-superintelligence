@@ -15,11 +15,11 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "engine")
 
 import torch
 
-from openclaw_engine.data.tokenizer import Tokenizer, TokenizerConfig, BOS_TOKEN, EOS_TOKEN, PAD_TOKEN
-from openclaw_engine.data.pipeline import TextDataPipeline, DataConfig
-from openclaw_engine.model.lm import LanguageModel, LMConfig, create_from_scratch, TransformerBlock
-from openclaw_engine.kickstart import Kickstart, KickstartConfig
-from openclaw_engine.training.byzantine import AggregationMethod, ByzantineConfig, robust_aggregate
+from ussi_engine.data.tokenizer import Tokenizer, TokenizerConfig, BOS_TOKEN, EOS_TOKEN, PAD_TOKEN
+from ussi_engine.data.pipeline import TextDataPipeline, DataConfig
+from ussi_engine.model.lm import LanguageModel, LMConfig, create_from_scratch, TransformerBlock
+from ussi_engine.kickstart import Kickstart, KickstartConfig
+from ussi_engine.training.byzantine import AggregationMethod, ByzantineConfig, robust_aggregate
 
 
 # Shared training text (public domain, Alice in Wonderland excerpt).

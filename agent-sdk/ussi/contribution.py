@@ -1,4 +1,4 @@
-"""Contribution tracking for the OpenClaw network.
+"""Contribution tracking for the USSI network.
 
 Tracks what each peer contributes (compute, training, inference serving) and
 provides cryptographic proofs that peers present when making requests.

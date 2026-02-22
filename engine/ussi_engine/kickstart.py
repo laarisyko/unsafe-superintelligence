@@ -46,7 +46,7 @@ class KickstartConfig:
     """Configuration for bootstrapping a new LLM from scratch."""
 
     # Model.
-    model_id: str = "openclaw-v0"
+    model_id: str = "ussi-v0"
     hidden_dim: int = 256
     n_layers: int = 6
     n_heads: int = 4

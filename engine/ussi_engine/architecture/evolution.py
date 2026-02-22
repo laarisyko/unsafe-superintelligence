@@ -250,6 +250,138 @@ class FitnessEvaluator:
             return VoteDecision.ABSTAIN
 
 
+@dataclass
+class PendingOutcome:
+    """Tracks an accepted proposal awaiting fitness evaluation."""
+
+    proposal_id: str
+    proposer_id: str
+    voter_decisions: Dict[str, VoteDecision]
+    baseline_fitness: float
+    accepted_at_round: int
+    settled: bool = False
+
+
+class ProposalOutcomeTracker:
+    """Tracks proposal outcomes and distributes rewards/penalties.
+
+    After a mutation is accepted, waits `rounds_to_settle` training rounds
+    to measure whether the mutation actually improved the model. Then:
+    - Good mutation: proposer gets bonus credits, accurate approve-voters
+      get their deposit refunded with bonus.
+    - Bad mutation: proposer gets reputation penalty, accurate reject-voters
+      get their deposit refunded with bonus.
+
+    Voter accuracy: approved a good mutation OR rejected a bad mutation = accurate.
+    """
+
+    def __init__(
+        self,
+        reputation: object,  # ReputationTracker
+        ledger: object,  # CreditLedger
+        evaluator: FitnessEvaluator,
+        rounds_to_settle: int = 5,
+        proposer_reward_credits: float = 5.0,
+        proposer_penalty_reputation: float = 0.05,
+    ):
+        self.reputation = reputation
+        self.credit_ledger = ledger
+        self.evaluator = evaluator
+        self.rounds_to_settle = rounds_to_settle
+        self.proposer_reward_credits = proposer_reward_credits
+        self.proposer_penalty_reputation = proposer_penalty_reputation
+
+        self._pending: List[PendingOutcome] = []
+        self._current_round: int = 0
+
+    def register_accepted(
+        self,
+        proposal: ArchitectureProposal,
+        voter_decisions: Dict[str, VoteDecision],
+        baseline_fitness: float,
+    ):
+        """Register an accepted proposal for future settlement."""
+        outcome = PendingOutcome(
+            proposal_id=proposal.proposal_id,
+            proposer_id=proposal.proposer_id,
+            voter_decisions=dict(voter_decisions),
+            baseline_fitness=baseline_fitness,
+            accepted_at_round=self._current_round,
+        )
+        self._pending.append(outcome)
+
+    def tick_round(self, current_genome: ArchitectureGenome):
+        """Called after each training round. Settles matured proposals."""
+        self._current_round += 1
+        self._settle_matured(current_genome)
+
+    def _settle_matured(self, current_genome: ArchitectureGenome):
+        """Settle all proposals that have matured (enough rounds elapsed)."""
+        for outcome in self._pending:
+            if outcome.settled:
+                continue
+            rounds_elapsed = self._current_round - outcome.accepted_at_round
+            if rounds_elapsed >= self.rounds_to_settle:
+                self._settle_one(outcome, current_genome)
+
+    def _settle_one(
+        self, outcome: PendingOutcome, current_genome: ArchitectureGenome
+    ):
+        """Settle a single pending outcome."""
+        outcome.settled = True
+
+        # Measure current fitness.
+        current_fitness = self.evaluator._evaluate_model(
+            current_genome.compile(), current_genome
+        )
+        is_good_mutation = current_fitness >= outcome.baseline_fitness
+
+        # Reward/penalize the proposer.
+        if is_good_mutation:
+            # Good mutation: proposer gets bonus credits.
+            if hasattr(self.credit_ledger, "earn_training_round"):
+                proposer_account = self.credit_ledger._get_or_create(
+                    outcome.proposer_id
+                )
+                proposer_account.raw_balance += self.proposer_reward_credits
+                proposer_account.total_earned += self.proposer_reward_credits
+                self.credit_ledger._total_credits_minted += (
+                    self.proposer_reward_credits
+                )
+        else:
+            # Bad mutation: proposer gets reputation penalty.
+            if hasattr(self.reputation, "_peers"):
+                record = getattr(self.reputation, "_get_or_create", lambda x: None)(
+                    outcome.proposer_id
+                )
+                if record is not None:
+                    record.score = max(
+                        0.0, record.score - self.proposer_penalty_reputation
+                    )
+
+        # Settle voter deposits.
+        for voter_id, decision in outcome.voter_decisions.items():
+            if decision == VoteDecision.ABSTAIN:
+                continue
+            # Accurate = approved a good mutation or rejected a bad one.
+            was_accurate = (
+                decision == VoteDecision.APPROVE and is_good_mutation
+            ) or (decision == VoteDecision.REJECT and not is_good_mutation)
+
+            if hasattr(self.credit_ledger, "settle_vote"):
+                self.credit_ledger.settle_vote(
+                    voter_id, outcome.proposal_id, was_accurate
+                )
+
+    @property
+    def pending(self) -> List[PendingOutcome]:
+        return [p for p in self._pending if not p.settled]
+
+    @property
+    def settled(self) -> List[PendingOutcome]:
+        return [p for p in self._pending if p.settled]
+
+
 class EvolutionProtocol:
     """Orchestrates decentralized architecture evolution on a single peer.
 
@@ -266,6 +398,9 @@ class EvolutionProtocol:
         approval_quorum: float = 0.6,
         min_voters: int = 2,
         publish_fn: Optional[Callable] = None,
+        get_reputation: Optional[Callable[[str], float]] = None,
+        outcome_tracker: Optional["ProposalOutcomeTracker"] = None,
+        ledger: Optional["EvolutionLedger"] = None,
     ):
         """
         Args:
@@ -275,6 +410,10 @@ class EvolutionProtocol:
             approval_quorum: Fraction of votes that must approve (0.0 - 1.0).
             min_voters: Minimum number of votes required for a decision.
             publish_fn: Callable to publish messages to gossipsub.
+            get_reputation: Callable returning reputation score (0.0-1.0) for a peer.
+                If None, all peers get weight 0.5 (backward compatible).
+            outcome_tracker: Tracks proposal outcomes for reward/penalty distribution.
+            ledger: Signed evolution ledger for audit trail.
         """
         self.peer_id = peer_id
         self.current_genome = current_genome
@@ -282,6 +421,9 @@ class EvolutionProtocol:
         self.approval_quorum = approval_quorum
         self.min_voters = min_voters
         self.publish_fn = publish_fn
+        self.get_reputation = get_reputation
+        self.outcome_tracker = outcome_tracker
+        self.ledger = ledger
 
         # Pending proposals and their votes.
         self._proposals: Dict[str, ArchitectureProposal] = {}
@@ -313,7 +455,7 @@ class EvolutionProtocol:
 
         # Broadcast to the swarm.
         if self.publish_fn:
-            self.publish_fn("openclaw/architecture", proposal.to_dict())
+            self.publish_fn("ussi/architecture", proposal.to_dict())
 
         logger.info(
             "Proposed architecture mutation: %s (fitness=%.4f) -> %s",
@@ -369,7 +511,7 @@ class EvolutionProtocol:
 
         # Broadcast vote.
         if self.publish_fn:
-            self.publish_fn("openclaw/architecture", vote.to_dict())
+            self.publish_fn("ussi/architecture", vote.to_dict())
 
         return vote
 
@@ -388,57 +530,105 @@ class EvolutionProtocol:
 
         The decision is deterministic: given the same set of votes, every peer
         reaches the same conclusion (no coordinator needed).
+
+        When get_reputation is set, votes are weighted by reputation score.
+        ABSTAIN votes contribute to total weight (diluting low-rep approvers).
+        A banned peer (reputation 0.0) has zero vote weight.
         """
         if proposal_id not in self._proposals:
             return None
 
         votes = self._votes.get(proposal_id, [])
         # Deduplicate by voter_id (last vote wins).
-        unique_votes = {}
+        unique_votes: Dict[str, ProposalVote] = {}
         for v in votes:
             unique_votes[v.voter_id] = v
 
-        approvals = sum(
-            1 for v in unique_votes.values() if v.decision == VoteDecision.APPROVE
-        )
-        rejections = sum(
-            1 for v in unique_votes.values() if v.decision == VoteDecision.REJECT
-        )
-        total = len(unique_votes)
+        total_voters = len(unique_votes)
 
-        if total < self.min_voters:
+        if total_voters < self.min_voters:
             logger.info(
                 "Proposal %s: not enough voters (%d/%d)",
                 proposal_id,
-                total,
+                total_voters,
                 self.min_voters,
             )
             return None
 
-        approval_rate = approvals / total if total > 0 else 0.0
+        # Compute weighted approval rate.
+        approve_weight = 0.0
+        reject_weight = 0.0
+        total_weight = 0.0
 
-        if approval_rate >= self.approval_quorum:
-            proposal = self._proposals[proposal_id]
+        for voter_id, vote in unique_votes.items():
+            if self.get_reputation is not None:
+                w = self.get_reputation(voter_id)
+            else:
+                w = 0.5  # Fallback: equal weight for all peers.
+
+            total_weight += w
+            if vote.decision == VoteDecision.APPROVE:
+                approve_weight += w
+            elif vote.decision == VoteDecision.REJECT:
+                reject_weight += w
+            # ABSTAIN: contributes to total_weight but not approve/reject.
+
+        approval_rate = approve_weight / total_weight if total_weight > 0 else 0.0
+
+        proposal = self._proposals[proposal_id]
+        accepted = approval_rate >= self.approval_quorum
+
+        # Record baseline fitness before potential genome swap.
+        baseline_fitness = None
+        if len(self._history) >= 1:
+            baseline_fitness = self.evaluator._evaluate_model(
+                self._history[-1].compile(), self._history[-1]
+            )
+
+        if accepted:
             self.current_genome = proposal.new_genome
             self._history.append(self.current_genome)
             logger.info(
-                "Proposal %s ACCEPTED (%.0f%% approval, %d voters). "
+                "Proposal %s ACCEPTED (%.0f%% weighted approval, %d voters). "
                 "New genome: gen=%d, hash=%s",
                 proposal_id,
                 approval_rate * 100,
-                total,
+                total_voters,
                 self.current_genome.generation,
                 self.current_genome.hash(),
             )
-            return self.current_genome
+
+            # Register with outcome tracker for future settlement.
+            if self.outcome_tracker is not None and baseline_fitness is not None:
+                voter_decisions = {
+                    vid: v.decision for vid, v in unique_votes.items()
+                }
+                self.outcome_tracker.register_accepted(
+                    proposal, voter_decisions, baseline_fitness
+                )
         else:
             logger.info(
-                "Proposal %s REJECTED (%.0f%% approval, %d voters)",
+                "Proposal %s REJECTED (%.0f%% weighted approval, %d voters)",
                 proposal_id,
                 approval_rate * 100,
-                total,
+                total_voters,
             )
-            return None
+
+        # Append to signed ledger for audit trail.
+        if self.ledger is not None:
+            self.ledger.append(
+                proposal_id=proposal_id,
+                proposer_id=proposal.proposer_id,
+                mutation_description=proposal.mutation.describe(),
+                outcome="accepted" if accepted else "rejected",
+                approve_weight=approve_weight,
+                reject_weight=reject_weight,
+                total_weight=total_weight,
+                voter_count=total_voters,
+                baseline_fitness=baseline_fitness,
+            )
+
+        return self.current_genome if accepted else None
 
     @property
     def genome_history(self) -> List[ArchitectureGenome]:

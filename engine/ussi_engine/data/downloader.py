@@ -22,7 +22,7 @@ from typing import List, Optional
 logger = logging.getLogger(__name__)
 
 # Default data directory.
-DEFAULT_DATA_DIR = os.path.join(os.path.expanduser("~"), ".openclaw", "data")
+DEFAULT_DATA_DIR = os.path.join(os.path.expanduser("~"), ".ussi", "data")
 
 # Public domain sample texts for quick testing.
 SAMPLE_TEXTS = {
@@ -215,7 +215,7 @@ def download_gutenberg(
         try:
             req = urllib.request.Request(
                 info["url"],
-                headers={"User-Agent": "OpenClaw/1.0 (decentralized-llm-training)"},
+                headers={"User-Agent": "USSI/1.0 (decentralized-llm-training)"},
             )
             with urllib.request.urlopen(req, timeout=60) as response:
                 content = response.read()

@@ -28,7 +28,7 @@ def _make_simple_model(n_layers=8, hidden_dim=64):
 
 def test_model_sharding():
     """Verify a model can be split into shards and reassembled."""
-    from openclaw_engine.model.shard import split_model
+    from ussi_engine.model.shard import split_model
 
     model = _make_simple_model(n_layers=8, hidden_dim=64)
     shards = split_model(model, model_id="test-model", n_shards=4)
@@ -46,8 +46,8 @@ def test_model_sharding():
 
 def test_pipeline_forward():
     """Verify pipeline inference produces output through all stages."""
-    from openclaw_engine.model.shard import split_model
-    from openclaw_engine.model.pipeline import PipelineExecutor
+    from ussi_engine.model.shard import split_model
+    from ussi_engine.model.pipeline import PipelineExecutor
 
     model = _make_simple_model(n_layers=8, hidden_dim=64)
     shards = split_model(model, model_id="test-model", n_shards=4)
@@ -62,8 +62,8 @@ def test_pipeline_forward():
 
 def test_local_training_step():
     """Verify a single training step produces gradients."""
-    from openclaw_engine.model.shard import split_model
-    from openclaw_engine.training.trainer import LocalTrainer, TrainingConfig
+    from ussi_engine.model.shard import split_model
+    from ussi_engine.training.trainer import LocalTrainer, TrainingConfig
 
     model = _make_simple_model(n_layers=4, hidden_dim=32)
     shards = split_model(model, model_id="test", n_shards=2)
@@ -83,7 +83,7 @@ def test_local_training_step():
 
 def test_gradient_compression_topk():
     """Verify Top-K compression preserves the largest values."""
-    from openclaw_engine.training.compression import TopKCompressor
+    from ussi_engine.training.compression import TopKCompressor
 
     compressor = TopKCompressor(ratio=0.1)
     original = torch.randn(100)
@@ -103,7 +103,7 @@ def test_gradient_compression_topk():
 
 def test_gradient_compression_fp16():
     """Verify FP16 compression reduces size by ~50%."""
-    from openclaw_engine.training.compression import FP16Compressor
+    from ussi_engine.training.compression import FP16Compressor
 
     compressor = FP16Compressor()
     original = torch.randn(1000)
@@ -120,7 +120,7 @@ def test_gradient_compression_fp16():
 
 def test_ring_allreduce_local():
     """Verify ring all-reduce produces correct average across 4 peers."""
-    from openclaw_engine.training.allreduce import RingAllReduce
+    from ussi_engine.training.allreduce import RingAllReduce
 
     n_peers = 4
     rings = RingAllReduce.local_ring(n_peers)
@@ -156,7 +156,7 @@ def test_ring_allreduce_local():
 
 def test_merkle_root_consistency():
     """Verify two shards with identical weights produce the same Merkle root."""
-    from openclaw_engine.model.shard import ModelShard, ShardConfig
+    from ussi_engine.model.shard import ModelShard, ShardConfig
 
     config = ShardConfig(model_id="test", layer_start=0, layer_end=2, total_layers=4)
 
@@ -180,9 +180,9 @@ def test_merkle_root_consistency():
 
 def test_full_training_round():
     """End-to-end test: shard model, train, aggregate, verify Merkle roots."""
-    from openclaw_engine.model.shard import split_model
-    from openclaw_engine.training.trainer import LocalTrainer, TrainingConfig
-    from openclaw_engine.training.allreduce import RingAllReduce
+    from ussi_engine.model.shard import split_model
+    from ussi_engine.training.trainer import LocalTrainer, TrainingConfig
+    from ussi_engine.training.allreduce import RingAllReduce
 
     # Create model and shard across 3 peers (data parallelism: same shard).
     model = _make_simple_model(n_layers=4, hidden_dim=32)

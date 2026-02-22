@@ -240,7 +240,7 @@
 
   <!-- Big surrounding box for Engine -->
   <rect x="40" y="745" width="930" height="155" rx="10" fill="none" stroke="#c084fc" stroke-width="0.7" stroke-dasharray="4,4" stroke-opacity="0.4"/>
-  <text x="52" y="762" fill="#c084fc" font-size="10" opacity="0.6">engine/openclaw_engine/</text>
+  <text x="52" y="762" fill="#c084fc" font-size="10" opacity="0.6">engine/ussi_engine/</text>
 
   <!-- Arrow: Bridge -> Engine -->
   <line x1="740" y1="705" x2="740" y2="745" stroke="#60a5fa" stroke-width="2" marker-end="url(#arrow)"/>

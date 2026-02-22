@@ -91,7 +91,7 @@ class Agent:
             "accelerator": accelerator,
             "status": "available",
         }
-        self.network.publish("openclaw/heartbeat", capacity)
+        self.network.publish("ussi/heartbeat", capacity)
         self._contributing = True
         logger.info(
             "Agent %s contributing: %s %s (tier: contributor -- unlimited access)",
@@ -218,7 +218,7 @@ class Agent:
     def generate_training_data(
         self,
         prompt: str,
-        model: str = "openclaw-default",
+        model: str = "ussi-default",
         n_samples: int = 1,
         max_tokens: int = 512,
     ) -> dict:

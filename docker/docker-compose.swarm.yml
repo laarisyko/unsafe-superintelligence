@@ -1,4 +1,4 @@
-# Local development swarm: 5 OpenClaw peers on the same Docker network.
+# Local development swarm: 5 USSI peers on the same Docker network.
 #
 # Peers discover each other via mDNS (all on the same bridge network).
 # Peer 1 acts as the initial bootstrap (NOT a master -- any peer can bootstrap).
@@ -14,9 +14,9 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile.node
-    container_name: openclaw-peer1
+    container_name: ussi-peer1
     command: >
-      openclaw-node
+      ussi-node
         --port 9000
         --api-port 50051
         --gpu-memory-mb 0
@@ -26,7 +26,7 @@ services:
       - "9001:9000"
       - "50061:50051"
     networks:
-      - openclaw-net
+      - ussi-net
     environment:
       - RUST_LOG=info
 
@@ -34,9 +34,9 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile.node
-    container_name: openclaw-peer2
+    container_name: ussi-peer2
     command: >
-      openclaw-node
+      ussi-node
         --port 9000
         --api-port 50051
         --gpu-memory-mb 0
@@ -46,7 +46,7 @@ services:
       - "9002:9000"
       - "50062:50051"
     networks:
-      - openclaw-net
+      - ussi-net
     depends_on:
       - peer1
 
@@ -54,9 +54,9 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile.node
-    container_name: openclaw-peer3
+    container_name: ussi-peer3
     command: >
-      openclaw-node
+      ussi-node
         --port 9000
         --api-port 50051
         --gpu-memory-mb 8192
@@ -66,7 +66,7 @@ services:
       - "9003:9000"
       - "50063:50051"
     networks:
-      - openclaw-net
+      - ussi-net
     depends_on:
       - peer1
 
@@ -74,9 +74,9 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile.node
-    container_name: openclaw-peer4
+    container_name: ussi-peer4
     command: >
-      openclaw-node
+      ussi-node
         --port 9000
         --api-port 50051
         --gpu-memory-mb 8192
@@ -86,7 +86,7 @@ services:
       - "9004:9000"
       - "50064:50051"
     networks:
-      - openclaw-net
+      - ussi-net
     depends_on:
       - peer1
 
@@ -94,9 +94,9 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile.node
-    container_name: openclaw-peer5
+    container_name: ussi-peer5
     command: >
-      openclaw-node
+      ussi-node
         --port 9000
         --api-port 50051
         --gpu-memory-mb 16384
@@ -106,10 +106,10 @@ services:
       - "9005:9000"
       - "50065:50051"
     networks:
-      - openclaw-net
+      - ussi-net
     depends_on:
       - peer1
 
 networks:
-  openclaw-net:
+  ussi-net:
     driver: bridge

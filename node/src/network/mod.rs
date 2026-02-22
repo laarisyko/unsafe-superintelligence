@@ -34,9 +34,9 @@ pub enum SwarmCommand {
     Dial(Multiaddr),
 }
 
-/// Combined libp2p behaviour for the OpenClaw node.
+/// Combined libp2p behaviour for the USSI node.
 #[derive(libp2p::swarm::NetworkBehaviour)]
-pub struct OpenClawBehaviour {
+pub struct USSIBehaviour {
     pub gossipsub: gossipsub::Behaviour,
     pub kademlia: kad::Behaviour<kad::store::MemoryStore>,
     pub mdns: mdns::tokio::Behaviour,
@@ -46,7 +46,7 @@ pub struct OpenClawBehaviour {
 /// Drives the libp2p swarm. Bridges between the swarm and the rest of the node
 /// via channels.
 pub struct SwarmDriver {
-    swarm: Swarm<OpenClawBehaviour>,
+    swarm: Swarm<USSIBehaviour>,
     event_tx: mpsc::Sender<SwarmEvent2>,
     command_rx: mpsc::Receiver<SwarmCommand>,
     config: NodeConfig,
@@ -120,14 +120,14 @@ impl SwarmDriver {
         }
     }
 
-    async fn handle_swarm_event(&mut self, event: SwarmEvent<OpenClawBehaviourEvent>) {
+    async fn handle_swarm_event(&mut self, event: SwarmEvent<USSIBehaviourEvent>) {
         use libp2p::swarm::SwarmEvent::*;
         match event {
             NewListenAddr { address, .. } => {
                 let local_peer = *self.swarm.local_peer_id();
                 info!("Listening on {}/p2p/{}", address, local_peer);
             }
-            Behaviour(OpenClawBehaviourEvent::Mdns(mdns::Event::Discovered(peers))) => {
+            Behaviour(USSIBehaviourEvent::Mdns(mdns::Event::Discovered(peers))) => {
                 for (peer_id, addr) in peers {
                     info!("mDNS discovered peer: {} at {}", peer_id, addr);
                     self.swarm
@@ -137,13 +137,13 @@ impl SwarmDriver {
                     let _ = self.event_tx.send(SwarmEvent2::PeerDiscovered(peer_id)).await;
                 }
             }
-            Behaviour(OpenClawBehaviourEvent::Mdns(mdns::Event::Expired(peers))) => {
+            Behaviour(USSIBehaviourEvent::Mdns(mdns::Event::Expired(peers))) => {
                 for (peer_id, _) in peers {
                     debug!("mDNS peer expired: {}", peer_id);
                     let _ = self.event_tx.send(SwarmEvent2::PeerExpired(peer_id)).await;
                 }
             }
-            Behaviour(OpenClawBehaviourEvent::Gossipsub(gossipsub::Event::Message {
+            Behaviour(USSIBehaviourEvent::Gossipsub(gossipsub::Event::Message {
                 propagation_source,
                 message,
                 ..
@@ -162,7 +162,7 @@ impl SwarmDriver {
                     })
                     .await;
             }
-            Behaviour(OpenClawBehaviourEvent::Kademlia(
+            Behaviour(USSIBehaviourEvent::Kademlia(
                 kad::Event::OutboundQueryProgressed { result, .. },
             )) => {
                 if let kad::QueryResult::GetClosestPeers(Ok(ok)) = result {
@@ -171,7 +171,7 @@ impl SwarmDriver {
                     }
                 }
             }
-            Behaviour(OpenClawBehaviourEvent::Identify(identify::Event::Received {
+            Behaviour(USSIBehaviourEvent::Identify(identify::Event::Received {
                 peer_id,
                 info: identify_info,
                 ..
@@ -237,7 +237,7 @@ impl SwarmDriver {
 }
 
 /// Collect connected peers from the swarm.
-pub fn connected_peers(swarm: &Swarm<OpenClawBehaviour>) -> HashSet<PeerId> {
+pub fn connected_peers(swarm: &Swarm<USSIBehaviour>) -> HashSet<PeerId> {
     swarm.connected_peers().cloned().collect()
 }
 

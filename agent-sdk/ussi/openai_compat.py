@@ -1,7 +1,7 @@
-"""OpenAI-compatible request/response types for the OpenClaw network.
+"""OpenAI-compatible request/response types for the USSI network.
 
 This module provides builders that translate between the OpenAI API format
-and the OpenClaw network's internal format, so USSI can serve as a drop-in
+and the USSI network's internal format, so USSI can serve as a drop-in
 replacement for OpenAI.
 
 Supported endpoints:
@@ -30,7 +30,7 @@ def make_model_id_list(model_ids: List[str]) -> Dict[str, Any]:
                 "id": mid,
                 "object": "model",
                 "created": 0,
-                "owned_by": "openclaw-network",
+                "owned_by": "ussi-network",
                 "permission": [],
                 "root": mid,
                 "parent": None,
@@ -146,7 +146,7 @@ def make_error_response(
 def messages_to_prompt(messages: List[Dict[str, str]]) -> str:
     """Convert OpenAI chat messages to a single prompt string.
 
-    This is a simple concatenation strategy. The actual model on the OpenClaw
+    This is a simple concatenation strategy. The actual model on the USSI
     network may use its own chat template; this provides a reasonable default.
     """
     parts = []

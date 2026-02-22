@@ -4,11 +4,11 @@ use libp2p::{
 };
 use std::time::Duration;
 
-use super::OpenClawBehaviour;
+use super::USSIBehaviour;
 use crate::config::NodeConfig;
 
-/// Build a fully configured libp2p swarm with all OpenClaw behaviours.
-pub async fn build_swarm(config: &NodeConfig) -> Result<Swarm<OpenClawBehaviour>> {
+/// Build a fully configured libp2p swarm with all USSI behaviours.
+pub async fn build_swarm(config: &NodeConfig) -> Result<Swarm<USSIBehaviour>> {
     let swarm = SwarmBuilder::with_new_identity()
         .with_tokio()
         .with_tcp(
@@ -47,11 +47,11 @@ pub async fn build_swarm(config: &NodeConfig) -> Result<Swarm<OpenClawBehaviour>
 
             // Identify protocol for exchanging peer info.
             let identify = identify::Behaviour::new(identify::Config::new(
-                "/openclaw/0.1.0".to_string(),
+                "/ussi/0.1.0".to_string(),
                 key.public(),
             ));
 
-            OpenClawBehaviour {
+            USSIBehaviour {
                 gossipsub,
                 kademlia,
                 mdns,

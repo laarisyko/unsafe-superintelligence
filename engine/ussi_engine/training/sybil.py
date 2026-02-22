@@ -71,10 +71,10 @@ DIFFICULTY_HARD = 24      # ~16M hashes, ~8s
 def compute_pow_hash(round_id: str, peer_id: str, nonce: int) -> bytes:
     """Compute the PoW hash for a given nonce.
 
-    Hash = SHA256("openclaw-pow-v1:" || round_id || ":" || peer_id || ":" || nonce_le_bytes)
+    Hash = SHA256("ussi-pow-v1:" || round_id || ":" || peer_id || ":" || nonce_le_bytes)
     """
     h = hashlib.sha256()
-    h.update(b"openclaw-pow-v1:")
+    h.update(b"ussi-pow-v1:")
     h.update(round_id.encode())
     h.update(b":")
     h.update(peer_id.encode())

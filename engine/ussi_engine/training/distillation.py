@@ -1,10 +1,10 @@
 """Knowledge distillation from SOTA teacher models.
 
-Trains the student (OpenClaw) model to match the teacher's soft probability
+Trains the student (USSI) model to match the teacher's soft probability
 distributions. This transfers knowledge from large models to our small
 decentralized model.
 
-Key challenge: vocab mismatch. OpenClaw uses byte-level vocab (260 tokens)
+Key challenge: vocab mismatch. USSI uses byte-level vocab (260 tokens)
 while SOTA models use BPE (100K+ tokens). We marginalize BPE token probs
 down to byte-level probs.
 """
@@ -97,7 +97,7 @@ class TeacherLogitProvider:
     """Converts teacher model outputs to byte-level log probabilities.
 
     Handles the vocab mismatch: SOTA models use BPE (100K+ tokens),
-    OpenClaw uses byte-level (260 tokens). We decompose each BPE token
+    USSI uses byte-level (260 tokens). We decompose each BPE token
     into its constituent bytes and distribute probability mass.
     """
 

@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package openclaw.inference;
+package ussi.inference;
 
 import "messages.proto";
 
@@ -56,6 +56,6 @@ message ActivationChunk {
   bytes tensor_data = 4;        // serialized tensor
   repeated uint32 shape = 5;
   string dtype = 6;             // "float32", "float16", "bfloat16"
-  openclaw.PeerId source_peer = 7;
-  openclaw.PeerId target_peer = 8;
+  ussi.PeerId source_peer = 7;
+  ussi.PeerId target_peer = 8;
 }

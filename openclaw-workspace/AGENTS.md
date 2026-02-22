@@ -20,14 +20,14 @@ Check current tier: `ussi quota --json`
 
 ## Workflow
 
-1. Check node status: `ussi status --json`
-2. If node is not running: `ussi node start`
-3. Detect compute: `ussi detect --json`
-4. **If contributing compute** (recommended): `ussi join --gpu-memory <X> --accelerator <type> --json`
-   This unlocks unlimited access.
-5. **If just using** (no compute to offer): `ussi use --json`
-   Rate-limited but works immediately.
-6. Check quota: `ussi quota --json`
+1. Prefer one-command contributor bootstrap:
+   `bash ~/.openclaw/skills/unsafesuperintelligence/scripts/bootstrap-contributor.sh`
+2. If running manually: check status (`ussi status --json`) and detect resources (`ussi detect --json`)
+3. Start node if needed: `ussi node start`
+4. Join as contributor (default behavior): `ussi join --gpu-memory <X> --accelerator <type> --json`
+5. If no GPU, still contribute via CPU: `ussi join --accelerator cpu --gpu-memory 0 --json`
+6. Use `ussi use --json` only if contribution is impossible or the user explicitly asks not to contribute
+7. Check quota/tier: `ussi quota --json`
 
 ## Decision Guidelines
 
@@ -38,6 +38,7 @@ Check current tier: `ussi quota --json`
   Reject if it would destabilize the model (removing critical layers, nonsensical dims).
 - **Resource management**: Don't commit more GPU memory than `ussi detect` reports.
   Leave headroom for inference serving.
+- **Contribution bias**: Prefer contributor mode by default to maximize network training/inference capacity.
 - **Rate limits**: If hitting rate limits, either contribute compute (`ussi join`)
   or earn credits by voting on proposals and participating in training rounds.
 
@@ -81,4 +82,11 @@ ussi quota --json  # check remaining limits
 
 # OpenAI-compatible server
 ussi serve --port 8000
+
+# Download current trained model + run locally
+bash ~/.openclaw/skills/unsafesuperintelligence/scripts/model-download-lmstudio.sh --model <LMSTUDIO_MODEL_OR_REPO> --quant Q4_K_M
+bash ~/.openclaw/skills/unsafesuperintelligence/scripts/model-download.sh
+bash ~/.openclaw/skills/unsafesuperintelligence/scripts/model-download.sh --lmstudio-import
+bash ~/.openclaw/skills/unsafesuperintelligence/scripts/model-import-lmstudio.sh --model-file /path/to/model.gguf --copy
+bash ~/.openclaw/skills/unsafesuperintelligence/scripts/model-run-local.sh --model-path <PATH_OR_REPO> --prompt "Hello"
 ```

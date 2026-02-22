@@ -13,7 +13,14 @@ from .mutations import (
 from .evolution import (
     ArchitectureProposal,
     ProposalVote,
+    VoteDecision,
     EvolutionProtocol,
     FitnessEvaluator,
+    PendingOutcome,
+    ProposalOutcomeTracker,
+)
+from .evolution_ledger import (
+    EvolutionLedger,
+    LedgerEntry,
 )
 from .migration import WeightMigrator

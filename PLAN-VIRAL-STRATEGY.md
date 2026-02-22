@@ -1,4 +1,4 @@
-# OpenClaw: Viral Strategy & Roadmap to Free LLM Training
+# USSI: Viral Strategy & Roadmap to Free LLM Training
 
 ## The Mission
 
@@ -17,15 +17,15 @@ government can shut it down. Every contributor co-owns the result.
 The #1 barrier to virality is friction. The entire join flow must be:
 
 ```bash
-pip install openclaw
-openclaw join --contribute-gpu
+pip install ussi
+ussi join --contribute-gpu
 ```
 
 That's it. The node auto-discovers peers, downloads the current model state,
 and starts contributing training compute within 60 seconds.
 
 **Tasks:**
-- [ ] Package `openclaw` on PyPI (rename from `unsafesuperintelligence`)
+- [ ] Package `ussi` on PyPI (rename from `unsafesuperintelligence`)
 - [ ] Auto-detect GPU (CUDA/ROCm/MPS) and CPU fallback
 - [ ] Bootstrap node list: hardcode 5-10 seed peers (run on cheap VPS instances)
 - [ ] Auto-download latest checkpoint from DHT on first join
@@ -33,7 +33,7 @@ and starts contributing training compute within 60 seconds.
 
 ### 1.2 Live Dashboard
 
-A public web dashboard at openclaw.org showing:
+A public web dashboard at ussi.org showing:
 
 - **Peer count** (live counter, like a Kickstarter goal)
 - **Total compute** (GPU-hours contributed)
@@ -50,7 +50,7 @@ training an AI together right now."
 - [ ] React dashboard (or simple HTML + Chart.js)
 - [ ] Peer count, loss curve, compute hours, samples
 - [ ] World map with approximate peer locations
-- [ ] Deploy to openclaw.org
+- [ ] Deploy to ussi.org
 
 ### 1.3 Proof It Works
 
@@ -87,9 +87,9 @@ Big Tech's moat is data. We break it by crowdsourcing:
   is training on. Incentivize underrepresented languages.
 
 **Tasks:**
-- [ ] `openclaw dataset download gutenberg` — auto-download public domain books
-- [ ] `openclaw dataset download wikipedia` — Wikipedia dump loader
-- [ ] `openclaw dataset add ~/my-books/` — contribute local data (gradients only leave)
+- [ ] `ussi dataset download gutenberg` — auto-download public domain books
+- [ ] `ussi dataset download wikipedia` — Wikipedia dump loader
+- [ ] `ussi dataset add ~/my-books/` — contribute local data (gradients only leave)
 - [ ] Data diversity metrics in dashboard (language detection, domain classification)
 
 ### 2.2 Contributor Credits
@@ -157,7 +157,7 @@ the network.
 Once the base model is trained, enable community fine-tuning:
 
 ```bash
-openclaw finetune --base openclaw-v0.3 --data ~/my-dataset/ --name "code-assistant"
+ussi finetune --base ussi-v0.3 --data ~/my-dataset/ --name "code-assistant"
 ```
 
 - Anyone can launch a fine-tuning swarm on top of the base model
@@ -180,10 +180,10 @@ Training is the hard part. Inference is the carrot:
 
 ```python
 # Drop-in replacement for OpenAI
-from openclaw import OpenAI
+from ussi import OpenAI
 client = OpenAI()  # No API key needed
 response = client.chat.completions.create(
-    model="openclaw-v0.3",
+    model="ussi-v0.3",
     messages=[{"role": "user", "content": "Hello!"}]
 )
 ```
@@ -285,9 +285,9 @@ with the people's compute. Join us."
    - Hardcoded in default config, discoverable via DHT
    - Auto-join: new peers connect to seeds, discover other peers
 
-3. **[ ] `pip install openclaw` with one-command join**
+3. **[ ] `pip install ussi` with one-command join**
    - Rename package, publish to PyPI
-   - `openclaw join` starts a node, syncs model, begins training
+   - `ussi join` starts a node, syncs model, begins training
    - Must work on: Linux + NVIDIA GPU, Linux + CPU, macOS + MPS, macOS + CPU
 
 4. **[ ] Checkpoint distribution via DHT**
@@ -300,10 +300,10 @@ with the people's compute. Join us."
 5. **[ ] Live dashboard (minimal)**
    - Peer count, loss curve, latest sample text
    - Static site + WebSocket for live updates
-   - Deploy to openclaw.org
+   - Deploy to ussi.org
 
 6. **[ ] Starter dataset downloader**
-   - `openclaw dataset download gutenberg` — 1GB of public domain books
+   - `ussi dataset download gutenberg` — 1GB of public domain books
    - Pre-tokenized cache for fast startup
 
 7. **[ ] Scale to 50M parameter model**
@@ -356,5 +356,5 @@ with the people's compute. Join us."
 
 ## One Sentence
 
-**OpenClaw is BitTorrent for AI training: a million volunteers training one
+**USSI is BitTorrent for AI training: a million volunteers training one
 model, owned by everyone, controlled by no one.**

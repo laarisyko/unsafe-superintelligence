@@ -269,7 +269,7 @@ class OpenAITeacher(TeacherModel):
 
 
 class LocalTeacher(TeacherModel):
-    """Teacher that wraps the local OpenClaw model.
+    """Teacher that wraps the local USSI model.
 
     Used for testing and as a fallback when no API keys are available.
     The local model acts as both teacher and student (self-distillation).

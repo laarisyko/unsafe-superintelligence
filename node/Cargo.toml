@@ -1,12 +1,12 @@
 [package]
-name = "openclaw-node"
+name = "ussi-node"
 version = "0.1.0"
 edition = "2021"
-description = "Decentralized P2P node for OpenClaw LLM network"
+description = "Decentralized P2P node for USSI LLM network"
 license = "MIT"
 
 [[bin]]
-name = "openclaw-node"
+name = "ussi-node"
 path = "src/main.rs"
 
 [dependencies]

@@ -61,7 +61,7 @@ class TrainingParticipant:
                 "cluster_size": cluster_size,
             },
         }
-        self.network.publish("openclaw/training", proposal)
+        self.network.publish("ussi/training", proposal)
         self._active_round = round_id
         logger.info("Proposed training round %s for model %s", round_id, model_id)
         return round_id
@@ -83,7 +83,7 @@ class TrainingParticipant:
                 "accelerator": accelerator,
             },
         }
-        self.network.publish("openclaw/training", join_msg)
+        self.network.publish("ussi/training", join_msg)
         self._active_round = round_id
         logger.info("Joined training round %s", round_id)
 
@@ -122,9 +122,9 @@ class TrainingParticipant:
         }
         # Use cluster-scoped topic if cluster_id is specified.
         if cluster_id >= 0:
-            topic = f"openclaw/cluster-gradient/L0-C{cluster_id}"
+            topic = f"ussi/cluster-gradient/L0-C{cluster_id}"
         else:
-            topic = "openclaw/gradient"
+            topic = "ussi/gradient"
         self.network.publish(topic, msg)
 
     def announce_checkpoint(self, round_id: str, weights_merkle_root: str, cid: str = ""):
@@ -136,7 +136,7 @@ class TrainingParticipant:
             "weights_merkle_root": weights_merkle_root,
             "checkpoint_cid": cid,
         }
-        self.network.publish("openclaw/checkpoint", msg)
+        self.network.publish("ussi/checkpoint", msg)
 
     @property
     def active_round(self) -> Optional[str]:

@@ -2,9 +2,9 @@ use clap::Parser;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-/// OpenClaw decentralized LLM network node.
+/// USSI decentralized LLM network node.
 #[derive(Parser, Debug, Clone)]
-#[command(name = "openclaw-node", about = "Decentralized P2P node for LLM training & inference")]
+#[command(name = "ussi-node", about = "Decentralized P2P node for LLM training & inference")]
 pub struct CliArgs {
     /// Port to listen on for P2P connections.
     #[arg(short, long, default_value_t = 9000)]
@@ -20,7 +20,7 @@ pub struct CliArgs {
     pub bootstrap: Vec<String>,
 
     /// Path to store node data (keys, checkpoints, cached weights).
-    #[arg(short, long, default_value = "./openclaw-data")]
+    #[arg(short, long, default_value = "./ussi-data")]
     pub data_dir: PathBuf,
 
     /// Advertised GPU memory in MB (0 = CPU only).

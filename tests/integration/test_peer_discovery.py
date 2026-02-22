@@ -17,7 +17,7 @@ import hashlib
 
 def test_shard_map_crdt_merge():
     """Verify that two shard maps from different peers converge after merge."""
-    from openclaw_engine.model.shard import _merkle_root
+    from ussi_engine.model.shard import _merkle_root
 
     # Simulate two peers maintaining independent shard maps.
     # We replicate the CRDT logic here since the Rust shard map
@@ -49,7 +49,7 @@ def test_vrf_deterministic_assignment():
     # Replicate the VRF logic from the Rust node.
     def vrf_compute(round_id: str, sorted_peers: list[str]) -> bytes:
         h = hashlib.sha256()
-        h.update(b"openclaw-vrf-v1:")
+        h.update(b"ussi-vrf-v1:")
         h.update(round_id.encode())
         h.update(b":")
         for p in sorted_peers:

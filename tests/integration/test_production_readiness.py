@@ -16,20 +16,20 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "engine")
 import torch
 import torch.nn as nn
 
-from openclaw_engine.training.byzantine import (
+from ussi_engine.training.byzantine import (
     AggregationMethod,
     ByzantineConfig,
     robust_aggregate,
     score_gradients,
 )
-from openclaw_engine.training.round_coordinator import (
+from ussi_engine.training.round_coordinator import (
     RoundCoordinator,
     RoundConfig,
     RoundPhase,
 )
-from openclaw_engine.training.cluster import PeerCapacity
-from openclaw_engine.model.shard import split_model, ShardConfig, ModelShard
-from openclaw_engine.model.checkpoint import CheckpointStore, CheckpointMetadata
+from ussi_engine.training.cluster import PeerCapacity
+from ussi_engine.model.shard import split_model, ShardConfig, ModelShard
+from ussi_engine.model.checkpoint import CheckpointStore, CheckpointMetadata
 
 
 def _make_gradients(n: int, dim: int = 16) -> list:

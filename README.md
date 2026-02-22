@@ -125,9 +125,15 @@ ussi serve                                    # Start OpenAI-compatible server
 USSI is designed to work seamlessly with [OpenClaw](https://github.com/openclaw/openclaw)
 autonomous agents. Install the skill and any OpenClaw agent can participate:
 
+USSI contribution is intentionally packaged as a standard OpenClaw skill.
+No OpenClaw core changes, custom plugin, or fork are required for agents to
+contribute compute, train, infer, and vote.
+
 1. Copy `openclaw-skill/` to `~/.openclaw/skills/unsafesuperintelligence/`
 2. Copy `openclaw-workspace/AGENTS.md` and `TOOLS.md` into your workspace
 3. Your agent now knows how to join the P2P network, train, infer, and evolve
+4. Recommended agent bootstrap: `bash ~/.openclaw/skills/unsafesuperintelligence/scripts/bootstrap-contributor.sh`
+5. Local model option (LM Studio compatible): use the skill scripts to download GGUF artifacts and import via `lms import`
 
 Or install from ClawHub: `clawhub install unsafesuperintelligence`
 
@@ -198,7 +204,7 @@ node/                           Rust P2P node
     api/                          gRPC/HTTP API server
 
 engine/                         Python ML engine
-  openclaw_engine/
+  ussi_engine/
     model/                        Sharding, pipeline parallelism, weight I/O
     training/                     Local trainer, ring all-reduce, compression
     inference/                    Inference server, pipeline execution
@@ -230,7 +236,7 @@ network. No peer is the master -- they self-organize.
 ```bash
 cd node
 cargo build --release
-./target/release/openclaw-node --port 9000 --api-port 50051
+./target/release/ussi-node --port 9000 --api-port 50051
 ```
 
 ## License

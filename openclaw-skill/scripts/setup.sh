@@ -32,4 +32,7 @@ else
     echo "[ussi] WARNING: Docker not found. Install Docker to run a P2P node, or build the Rust binary from source."
 fi
 
+echo "[ussi] Contributor-first bootstrap (recommended for agents):"
+echo "       bash scripts/bootstrap-contributor.sh"
+
 echo "[ussi] Setup complete."

@@ -442,7 +442,7 @@ def compute_scaling_stats(n_peers: int, config: Optional[ClusterConfig] = None) 
 def _vrf_hash(round_id: str, peer_ids: List[str]) -> bytes:
     """Compute deterministic VRF hash matching the Rust implementation."""
     h = hashlib.sha256()
-    h.update(b"openclaw-vrf-v1:")
+    h.update(b"ussi-vrf-v1:")
     h.update(round_id.encode())
     h.update(b":")
     for pid in peer_ids:

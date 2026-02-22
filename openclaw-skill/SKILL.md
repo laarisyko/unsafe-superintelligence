@@ -15,6 +15,30 @@ requires:
 
 # Unsafe Superintelligence (USSI) -- Decentralized LLM Network
 
+This package is a standard OpenClaw skill. USSI participation for agents is
+"just another skill": install it under `~/.openclaw/skills/` (or workspace
+`skills/`) and the agent can contribute to USSI without changing OpenClaw core.
+
+## Default Agent Policy (Contributor-First)
+
+When this skill is active, the default behavior should maximize useful network
+contribution:
+
+1. Install/verify USSI CLI (`bash scripts/setup.sh`)
+2. Detect resources (`ussi detect --json`)
+3. Start local node (`bash scripts/node-start.sh`)
+4. Join as contributor (`bash scripts/join.sh`)
+   - If GPU is available, join with GPU capacity
+   - If no GPU is available, still join with CPU (`--accelerator cpu`)
+5. Use free-tier mode (`ussi use`) only if contribution is explicitly not possible
+   or explicitly not desired by the user
+
+For one-command onboarding, use:
+
+```bash
+bash scripts/bootstrap-contributor.sh
+```
+
 ## Access Tiers
 
 USSI has two access tiers:
@@ -62,6 +86,11 @@ ussi join --gpu-memory 8GB --accelerator cuda --json
 ```
 
 This advertises your compute capacity and immediately unlocks contributor tier.
+If GPU is unavailable, CPU contribution is still preferred:
+
+```bash
+ussi join --accelerator cpu --gpu-memory 0 --json
+```
 
 ## Connecting as Free User (Rate-Limited)
 
@@ -117,6 +146,60 @@ ussi infer --model llama-7b --prompt "Your prompt here" --max-tokens 256 --json
 ```
 
 If rate-limited, the error includes a hint to contribute compute.
+
+## Download Current Model For Local Runtime
+
+Agents can download the current trained model artifact and run it locally.
+
+Download current/latest model:
+
+```bash
+bash scripts/model-download.sh
+```
+
+Download + import directly into LM Studio:
+
+```bash
+bash scripts/model-download.sh --lmstudio-import
+```
+
+Download directly with LM Studio (preferred when `lms` is installed):
+
+```bash
+bash scripts/model-download-lmstudio.sh --model lmstudio-community/Qwen2.5-7B-Instruct-GGUF --quant Q4_K_M
+```
+
+Download specific model:
+
+```bash
+bash scripts/model-download.sh --model llama-7b
+```
+
+Download from explicit URL:
+
+```bash
+bash scripts/model-download.sh --url https://example.com/model.gguf
+```
+
+Run local inference (auto backend selection):
+
+```bash
+bash scripts/model-run-local.sh --model-path /path/from/local_model_path --prompt "Hello"
+```
+
+Supported local runtimes:
+- `llama.cpp` (`llama-cli`) for GGUF files
+- `transformers` + `torch` for HuggingFace model directories/repo IDs
+
+LM Studio compatibility notes:
+- `scripts/model-download.sh` defaults to `--format gguf` for LM Studio compatibility
+- `scripts/model-download-lmstudio.sh` uses `lms get --gguf` for native LM Studio downloads
+- Use `--lmstudio-import` for one-step import via `lms import`
+- Or import manually:
+
+```bash
+bash scripts/model-import-lmstudio.sh --model-file /path/to/model.gguf --copy
+```
 
 ## Training
 
