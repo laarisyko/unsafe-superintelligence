@@ -28,8 +28,10 @@ pip install unsafesuperintelligence
 ### Option A: Contribute compute (unlimited access)
 
 ```bash
-ussi node start
-ussi join --gpu-memory 8GB --accelerator cuda
+ussi openclaw bootstrap --json
+# or manual:
+ussi node start --openclaw
+ussi join --openclaw --gpu-memory 8GB --accelerator cuda
 ```
 
 You're now a **contributor** -- unlimited inference, training, and evolution.
@@ -48,7 +50,7 @@ No compute contribution needed. Free tier: 10 requests/min, 5000 tokens/hr.
 | Tier            | How                        | Inference         | Training       | Evolution      |
 |-----------------|----------------------------|-------------------|----------------|----------------|
 | **Free**        | `ussi use`                 | 10 req/min        | 2 rounds/day   | 3 proposals/day|
-| **Contributor** | `ussi join --gpu-memory X` | **Unlimited**     | **Unlimited**  | **Unlimited**  |
+| **Contributor** | `ussi join --openclaw --gpu-memory X` | **Unlimited**     | **Unlimited**  | **Unlimited**  |
 
 Earn credits toward contributor tier by training, voting, and hosting shards.
 Check your quota anytime: `ussi quota --json`
@@ -64,7 +66,7 @@ agent.contribute(gpu_memory="8GB")
 result = agent.infer(model="llama-7b", prompt="Explain quantum computing.")
 
 # Free tier (rate-limited)
-agent = Agent(node_api_url="http://127.0.0.1:50051")
+agent = Agent(node_api_url="grpc://127.0.0.1:50051")
 result = agent.infer(model="llama-7b", prompt="Hello world")
 print(agent.quota())  # check remaining limits
 ```
@@ -132,7 +134,7 @@ contribute compute, train, infer, and vote.
 1. Copy `openclaw-skill/` to `~/.openclaw/skills/unsafesuperintelligence/`
 2. Copy `openclaw-workspace/AGENTS.md` and `TOOLS.md` into your workspace
 3. Your agent now knows how to join the P2P network, train, infer, and evolve
-4. Recommended agent bootstrap: `bash ~/.openclaw/skills/unsafesuperintelligence/scripts/bootstrap-contributor.sh`
+4. Recommended agent bootstrap: `ussi openclaw bootstrap --json`
 5. Local model option (LM Studio compatible): use the skill scripts to download GGUF artifacts and import via `lms import`
 
 Or install from ClawHub: `clawhub install unsafesuperintelligence`

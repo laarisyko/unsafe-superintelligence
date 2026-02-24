@@ -21,10 +21,10 @@ Check current tier: `ussi quota --json`
 ## Workflow
 
 1. Prefer one-command contributor bootstrap:
-   `bash ~/.openclaw/skills/unsafesuperintelligence/scripts/bootstrap-contributor.sh`
+   `ussi openclaw bootstrap --json`
 2. If running manually: check status (`ussi status --json`) and detect resources (`ussi detect --json`)
-3. Start node if needed: `ussi node start`
-4. Join as contributor (default behavior): `ussi join --gpu-memory <X> --accelerator <type> --json`
+3. Start node if needed: `ussi node start --openclaw`
+4. Join as contributor (default behavior): `ussi join --openclaw --gpu-memory <X> --accelerator <type> --json`
 5. If no GPU, still contribute via CPU: `ussi join --accelerator cpu --gpu-memory 0 --json`
 6. Use `ussi use --json` only if contribution is impossible or the user explicitly asks not to contribute
 7. Check quota/tier: `ussi quota --json`

@@ -14,7 +14,9 @@ Join the P2P network and advertise compute.
 
 | Flag            | Default | Description                      |
 |-----------------|---------|----------------------------------|
-| `--bootstrap`   | none    | Bootstrap peer multiaddress      |
+| `--bootstrap`   | none    | Bootstrap peer multiaddress (repeatable) |
+| `--openclaw`    | false   | Resolve peers from OpenClaw env/gateway |
+| `--gateway`     | none    | OpenClaw gateway URL override    |
 | `--gpu-memory`  | 0       | GPU memory (e.g. "8GB")         |
 | `--accelerator` | cpu     | cpu, cuda, rocm, tpu             |
 
@@ -79,12 +81,28 @@ Start the local P2P node.
 
 | Flag              | Default | Description                    |
 |-------------------|---------|--------------------------------|
-| `--bootstrap`     | none    | Bootstrap peer multiaddress    |
+| `--bootstrap`     | none    | Bootstrap peer multiaddress (repeatable) |
+| `--openclaw`      | false   | Resolve peers from OpenClaw env/gateway |
+| `--gateway`       | none    | OpenClaw gateway URL override  |
 | `--p2p-port`      | 9000    | P2P listening port             |
 | `--api-port`      | 50051   | HTTP API port                  |
 | `--accelerator`   | cpu     | cpu, cuda, rocm                |
 | `--gpu-memory-mb` | 0       | GPU memory in MB               |
 | `--no-docker`     | false   | Use local binary, not Docker   |
+
+### `ussi openclaw bootstrap`
+Discover bootstrap peers, start a node, and join contributor tier.
+
+| Flag              | Default | Description                           |
+|-------------------|---------|---------------------------------------|
+| `--bootstrap`     | none    | Manual bootstrap peer override        |
+| `--gateway`       | none    | OpenClaw gateway URL override         |
+| `--p2p-port`      | 9000    | P2P listening port                    |
+| `--api-port`      | 50051   | Local gRPC API port                   |
+| `--accelerator`   | auto    | cpu, cuda, rocm, tpu                  |
+| `--gpu-memory-mb` | auto    | GPU memory in MB                      |
+| `--gpu-memory`    | auto    | Contributor capacity string (e.g. 8GB) |
+| `--no-docker`     | false   | Use local binary, not Docker          |
 
 ### `ussi node stop`
 Stop the local P2P node.

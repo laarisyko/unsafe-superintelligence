@@ -1,9 +1,10 @@
-"""CLI for USSI: ussi join | status | infer | train | evolve | vote | feed | node | detect | models | rounds | quota | serve"""
+"""CLI for USSI: join, train, infer, and OpenClaw onboarding."""
 
 from __future__ import annotations
 
 import argparse
 import json
+import math
 import sys
 
 
@@ -20,6 +21,25 @@ def _out(data, as_json: bool = False):
         print(data)
 
 
+def _gpu_memory_from_mb(gpu_memory_mb: int) -> str:
+    if gpu_memory_mb <= 0:
+        return "0"
+    gpu_gb = max(1, math.ceil(gpu_memory_mb / 1024))
+    return f"{gpu_gb}GB"
+
+
+def _resolve_bootstrap_peers(args):
+    from .openclaw import OpenClawBootstrapResolver, parse_bootstrap_peers
+
+    explicit = parse_bootstrap_peers(getattr(args, "bootstrap", None))
+    if not getattr(args, "openclaw", False):
+        return explicit, None
+
+    resolver = OpenClawBootstrapResolver(gateway_url=getattr(args, "gateway", None))
+    discovery = resolver.resolve(explicit=explicit)
+    return discovery.peers, discovery
+
+
 def main():
     parser = argparse.ArgumentParser(
         prog="ussi",
@@ -27,13 +47,29 @@ def main():
     )
     parser.add_argument("--json", action="store_true", help="Output machine-readable JSON")
     parser.add_argument(
-        "--node-url", default="http://127.0.0.1:50051", help="Local node API URL"
+        "--node-url", default="grpc://127.0.0.1:50051", help="Local node API URL"
     )
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # --- ussi join ---
     join_p = subparsers.add_parser("join", help="Join the P2P network and contribute compute (unlimited access)")
-    join_p.add_argument("--bootstrap", "-b", help="Bootstrap peer multiaddress", default=None)
+    join_p.add_argument(
+        "--bootstrap",
+        "-b",
+        action="append",
+        default=None,
+        help="Bootstrap peer multiaddress (repeat or comma-separate values)",
+    )
+    join_p.add_argument(
+        "--openclaw",
+        action="store_true",
+        help="Resolve bootstrap peers from OpenClaw environment/gateway",
+    )
+    join_p.add_argument(
+        "--gateway",
+        default=None,
+        help="OpenClaw gateway URL for bootstrap discovery",
+    )
     join_p.add_argument("--gpu-memory", default="0", help="GPU memory to contribute (e.g. '8GB')")
     join_p.add_argument("--accelerator", default="cpu", choices=["cpu", "cuda", "rocm", "tpu"])
 
@@ -104,7 +140,23 @@ def main():
     node_sub = node_p.add_subparsers(dest="node_action")
 
     node_start = node_sub.add_parser("start", help="Start the P2P node")
-    node_start.add_argument("--bootstrap", "-b", help="Bootstrap peer multiaddress")
+    node_start.add_argument(
+        "--bootstrap",
+        "-b",
+        action="append",
+        default=None,
+        help="Bootstrap peer multiaddress (repeat or comma-separate values)",
+    )
+    node_start.add_argument(
+        "--openclaw",
+        action="store_true",
+        help="Resolve bootstrap peers from OpenClaw environment/gateway",
+    )
+    node_start.add_argument(
+        "--gateway",
+        default=None,
+        help="OpenClaw gateway URL for bootstrap discovery",
+    )
     node_start.add_argument("--p2p-port", type=int, default=9000)
     node_start.add_argument("--api-port", type=int, default=50051)
     node_start.add_argument("--accelerator", default="cpu", choices=["cpu", "cuda", "rocm"])
@@ -113,6 +165,32 @@ def main():
 
     node_sub.add_parser("stop", help="Stop the P2P node")
     node_sub.add_parser("logs", help="Show node logs")
+
+    # --- ussi openclaw ---
+    openclaw_p = subparsers.add_parser("openclaw", help="OpenClaw integration workflows")
+    openclaw_sub = openclaw_p.add_subparsers(dest="openclaw_action")
+    openclaw_bootstrap = openclaw_sub.add_parser(
+        "bootstrap",
+        help="One-command OpenClaw contributor bootstrap (discover peers, start node, join)",
+    )
+    openclaw_bootstrap.add_argument(
+        "--bootstrap",
+        "-b",
+        action="append",
+        default=None,
+        help="Bootstrap peer multiaddress override",
+    )
+    openclaw_bootstrap.add_argument(
+        "--gateway",
+        default=None,
+        help="OpenClaw gateway URL for bootstrap discovery",
+    )
+    openclaw_bootstrap.add_argument("--p2p-port", type=int, default=9000)
+    openclaw_bootstrap.add_argument("--api-port", type=int, default=50051)
+    openclaw_bootstrap.add_argument("--accelerator", choices=["cpu", "cuda", "rocm", "tpu"], default=None)
+    openclaw_bootstrap.add_argument("--gpu-memory-mb", type=int, default=None)
+    openclaw_bootstrap.add_argument("--gpu-memory", default=None, help="Override join --gpu-memory value")
+    openclaw_bootstrap.add_argument("--no-docker", action="store_true", help="Use local binary instead of Docker")
 
     # --- ussi serve ---
     serve_p = subparsers.add_parser("serve", help="Start OpenAI-compatible API server (drop-in replacement)")
@@ -133,17 +211,28 @@ def main():
     from .rate_limit import RateLimitExceeded
 
     if args.command == "join":
-        agent = Agent(bootstrap=args.bootstrap, node_api_url=args.node_url)
+        bootstrap_peers, discovery = _resolve_bootstrap_peers(args)
+        agent = Agent(bootstrap=bootstrap_peers, node_api_url=args.node_url)
         agent.connect()
         agent.contribute(gpu_memory=args.gpu_memory, accelerator=args.accelerator)
         result = {
             "agent_id": agent.agent_id,
             "status": "joined",
             "tier": "contributor",
+            "bootstrap_peers": bootstrap_peers,
             **agent.status(),
         }
+        if discovery is not None:
+            result["bootstrap_source"] = discovery.source
+            result["openclaw_gateway"] = discovery.gateway
+            if discovery.warnings:
+                result["warnings"] = discovery.warnings
         if not use_json:
             print(f"Agent {agent.agent_id} joined the network as CONTRIBUTOR (unlimited access).")
+            if bootstrap_peers:
+                print(f"Bootstrap peers: {len(bootstrap_peers)}")
+            elif discovery is not None:
+                print("No bootstrap peers discovered (running local-only until peers are dialed).")
         _out(result, use_json)
 
     elif args.command == "use":
@@ -335,17 +424,26 @@ def main():
         from .node_manager import NodeManager
 
         if args.node_action == "start":
+            bootstrap_peers, discovery = _resolve_bootstrap_peers(args)
             mgr = NodeManager(
                 p2p_port=args.p2p_port,
                 api_port=args.api_port,
-                bootstrap=getattr(args, "bootstrap", None),
+                bootstrap=bootstrap_peers,
                 accelerator=args.accelerator,
                 gpu_memory_mb=args.gpu_memory_mb,
             )
             result = mgr.start(docker=not args.no_docker)
+            result["bootstrap_peers"] = bootstrap_peers
+            if discovery is not None:
+                result["bootstrap_source"] = discovery.source
+                result["openclaw_gateway"] = discovery.gateway
+                if discovery.warnings:
+                    result["warnings"] = discovery.warnings
             if not use_json and result.get("status") == "started":
                 print(f"Node started on API port {result['api_port']}")
                 print(f"  API: {result.get('api_url', 'unknown')}")
+                if bootstrap_peers:
+                    print(f"  Bootstrap peers: {len(bootstrap_peers)}")
             _out(result, use_json)
 
         elif args.node_action == "stop":
@@ -361,6 +459,82 @@ def main():
 
         else:
             node_p.print_help()
+
+    elif args.command == "openclaw":
+        from .node_manager import NodeManager, detect_compute
+        from .openclaw import OpenClawBootstrapResolver
+
+        if args.openclaw_action == "bootstrap":
+            discovery = OpenClawBootstrapResolver(gateway_url=args.gateway).resolve(
+                explicit=args.bootstrap
+            )
+            bootstrap_peers = discovery.peers
+
+            compute = detect_compute()
+            accelerator = args.accelerator or compute.get("accelerator", "cpu")
+            gpu_memory_mb = (
+                int(args.gpu_memory_mb)
+                if args.gpu_memory_mb is not None
+                else int(compute.get("gpu_memory_mb", 0) or 0)
+            )
+            gpu_memory = args.gpu_memory or _gpu_memory_from_mb(gpu_memory_mb)
+            node_accelerator = accelerator if accelerator in {"cpu", "cuda", "rocm"} else "cpu"
+            node_api_url = f"grpc://127.0.0.1:{args.api_port}"
+
+            mgr = NodeManager(
+                p2p_port=args.p2p_port,
+                api_port=args.api_port,
+                bootstrap=bootstrap_peers,
+                accelerator=node_accelerator,
+                gpu_memory_mb=gpu_memory_mb,
+            )
+            node_result = mgr.start(docker=not args.no_docker)
+            if node_result.get("status") == "error":
+                _out(
+                    {
+                        "status": "error",
+                        "stage": "node_start",
+                        "node": node_result,
+                        "bootstrap_source": discovery.source,
+                        "openclaw_gateway": discovery.gateway,
+                    },
+                    use_json,
+                )
+                sys.exit(1)
+
+            agent = Agent(bootstrap=bootstrap_peers, node_api_url=node_api_url)
+            agent.connect()
+            agent.contribute(gpu_memory=gpu_memory, accelerator=accelerator)
+            status = agent.status()
+            quota = agent.quota()
+
+            result = {
+                "status": "bootstrapped",
+                "bootstrap_peers": bootstrap_peers,
+                "bootstrap_source": discovery.source,
+                "openclaw_gateway": discovery.gateway,
+                "node": node_result,
+                "compute_detected": compute,
+                "agent": status,
+                "quota": quota,
+            }
+            if discovery.warnings:
+                result["warnings"] = discovery.warnings
+
+            if not use_json:
+                print("OpenClaw bootstrap complete.")
+                print(f"  Node API: {node_api_url}")
+                print(f"  Accelerator: {accelerator}")
+                print(f"  Bootstrap peers: {len(bootstrap_peers)}")
+                if discovery.warnings:
+                    print(f"  Warning: {discovery.warnings[0]}")
+
+            _out(result, use_json)
+        else:
+            openclaw_p.print_help()
+
+    else:
+        parser.print_help()
 
 
 if __name__ == "__main__":

@@ -25,18 +25,15 @@ When this skill is active, the default behavior should maximize useful network
 contribution:
 
 1. Install/verify USSI CLI (`bash scripts/setup.sh`)
-2. Detect resources (`ussi detect --json`)
-3. Start local node (`bash scripts/node-start.sh`)
-4. Join as contributor (`bash scripts/join.sh`)
-   - If GPU is available, join with GPU capacity
-   - If no GPU is available, still join with CPU (`--accelerator cpu`)
+2. Run one-command onboarding (`ussi openclaw bootstrap --json`)
+3. Use `bash scripts/node-start.sh` / `bash scripts/join.sh` only for manual overrides
 5. Use free-tier mode (`ussi use`) only if contribution is explicitly not possible
    or explicitly not desired by the user
 
 For one-command onboarding, use:
 
 ```bash
-bash scripts/bootstrap-contributor.sh
+ussi openclaw bootstrap --json
 ```
 
 ## Access Tiers
@@ -62,19 +59,19 @@ pip install unsafesuperintelligence
 Then start a local P2P node (requires Docker):
 
 ```bash
-ussi node start --accelerator cpu
+ussi node start --openclaw --accelerator cpu
 ```
 
 Or with GPU:
 
 ```bash
-ussi node start --accelerator cuda --gpu-memory-mb 8192
+ussi node start --openclaw --accelerator cuda --gpu-memory-mb 8192
 ```
 
 To connect to an existing network, add a bootstrap address:
 
 ```bash
-ussi node start --bootstrap /ip4/203.0.113.1/tcp/9000/p2p/12D3KooW...
+ussi node start --openclaw --bootstrap /ip4/203.0.113.1/tcp/9000/p2p/12D3KooW...
 ```
 
 ## Joining as Contributor (Unlimited Access)
@@ -82,14 +79,14 @@ ussi node start --bootstrap /ip4/203.0.113.1/tcp/9000/p2p/12D3KooW...
 Contribute compute to get unlimited access to inference, training, and evolution:
 
 ```bash
-ussi join --gpu-memory 8GB --accelerator cuda --json
+ussi join --openclaw --gpu-memory 8GB --accelerator cuda --json
 ```
 
 This advertises your compute capacity and immediately unlocks contributor tier.
 If GPU is unavailable, CPU contribution is still preferred:
 
 ```bash
-ussi join --accelerator cpu --gpu-memory 0 --json
+ussi join --openclaw --accelerator cpu --gpu-memory 0 --json
 ```
 
 ## Connecting as Free User (Rate-Limited)
@@ -240,7 +237,9 @@ ussi rounds --json
 ## Node Management
 
 ```bash
+ussi openclaw bootstrap --json   # Discover peers + start node + join as contributor
 ussi node start                    # Start node (Docker)
+ussi node start --openclaw         # Start node with OpenClaw bootstrap discovery
 ussi node start --no-docker        # Start node (local binary)
 ussi node stop                     # Stop node
 ussi node logs                     # View node logs

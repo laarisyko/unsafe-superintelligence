@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-import json
 import logging
 import os
 import shutil
 import subprocess
 import time
-from typing import Dict, Optional
+from typing import Dict, Optional, Sequence
+
+from .openclaw import parse_bootstrap_peers
 
 logger = logging.getLogger(__name__)
 
@@ -23,13 +24,13 @@ class NodeManager:
         self,
         p2p_port: int = 9000,
         api_port: int = 50051,
-        bootstrap: Optional[str] = None,
+        bootstrap: Optional[Sequence[str] | str] = None,
         accelerator: str = "cpu",
         gpu_memory_mb: int = 0,
     ):
         self.p2p_port = p2p_port
         self.api_port = api_port
-        self.bootstrap = bootstrap
+        self.bootstrap_peers = parse_bootstrap_peers(bootstrap)
         self.accelerator = accelerator
         self.gpu_memory_mb = gpu_memory_mb
 
@@ -113,8 +114,8 @@ class NodeManager:
             "--accelerator", self.accelerator,
         ])
 
-        if self.bootstrap:
-            cmd.extend(["--bootstrap", self.bootstrap])
+        for peer in self.bootstrap_peers:
+            cmd.extend(["--bootstrap", peer])
 
         try:
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
@@ -124,9 +125,10 @@ class NodeManager:
                 return {
                     "status": "started",
                     "container": CONTAINER_NAME,
+                    "bootstrap_peers": self.bootstrap_peers,
                     "p2p_port": self.p2p_port,
                     "api_port": self.api_port,
-                    "api_url": f"http://127.0.0.1:{self.api_port}",
+                    "api_url": f"grpc://127.0.0.1:{self.api_port}",
                 }
             return {"status": "error", "error": result.stderr.strip()}
         except Exception as e:
@@ -145,8 +147,8 @@ class NodeManager:
             "--gpu-memory-mb", str(self.gpu_memory_mb),
             "--accelerator", self.accelerator,
         ]
-        if self.bootstrap:
-            cmd.extend(["--bootstrap", self.bootstrap])
+        for peer in self.bootstrap_peers:
+            cmd.extend(["--bootstrap", peer])
 
         try:
             proc = subprocess.Popen(
@@ -159,9 +161,10 @@ class NodeManager:
                 return {
                     "status": "started",
                     "pid": proc.pid,
+                    "bootstrap_peers": self.bootstrap_peers,
                     "p2p_port": self.p2p_port,
                     "api_port": self.api_port,
-                    "api_url": f"http://127.0.0.1:{self.api_port}",
+                    "api_url": f"grpc://127.0.0.1:{self.api_port}",
                 }
             return {"status": "error", "error": "Process exited immediately"}
         except Exception as e:

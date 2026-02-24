@@ -33,6 +33,7 @@ else
 fi
 
 echo "[ussi] Contributor-first bootstrap (recommended for agents):"
-echo "       bash scripts/bootstrap-contributor.sh"
+echo "       ussi openclaw bootstrap --json"
+echo "       (or: bash scripts/bootstrap-contributor.sh)"
 
 echo "[ussi] Setup complete."

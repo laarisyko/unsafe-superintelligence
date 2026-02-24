@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import uuid
-from typing import Optional
+from typing import Optional, Sequence
 
 from .network import NetworkClient
 from .training import TrainingParticipant
@@ -12,6 +12,7 @@ from .inference import InferenceClient
 from .architecture import ArchitectureEvolver
 from .contribution import ContributionTracker
 from .rate_limit import RateLimiter, RateLimitExceeded
+from .openclaw import parse_bootstrap_peers
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,7 @@ class Agent:
         from ussi import Agent
 
         # Free tier -- rate-limited, no compute contribution needed
-        agent = Agent(node_api_url="http://127.0.0.1:50051")
+        agent = Agent(node_api_url="grpc://127.0.0.1:50051")
         result = agent.infer(model="llama-7b", prompt="Hello world")
 
         # Contributor tier -- contribute compute, get unlimited access
@@ -39,12 +40,12 @@ class Agent:
 
     def __init__(
         self,
-        bootstrap: Optional[str] = None,
-        node_api_url: str = "http://127.0.0.1:50051",
+        bootstrap: Optional[Sequence[str] | str] = None,
+        node_api_url: str = "grpc://127.0.0.1:50051",
         agent_id: Optional[str] = None,
     ):
         self.agent_id = agent_id or str(uuid.uuid4())[:8]
-        self.bootstrap = bootstrap
+        self.bootstrap_peers = parse_bootstrap_peers(bootstrap)
         self.node_api_url = node_api_url
         self._connected = False
         self._contributing = False
@@ -56,7 +57,12 @@ class Agent:
         self.contributions = ContributionTracker()
         self.rate_limiter = RateLimiter()
 
-        logger.info("Agent %s initialized (node: %s)", self.agent_id, node_api_url)
+        logger.info(
+            "Agent %s initialized (node: %s, bootstrap_peers=%d)",
+            self.agent_id,
+            node_api_url,
+            len(self.bootstrap_peers),
+        )
 
     @property
     def tier(self) -> str:
@@ -67,8 +73,10 @@ class Agent:
 
     def connect(self) -> "Agent":
         """Connect to the P2P network."""
-        if self.bootstrap:
-            self.network.dial(self.bootstrap)
+        for addr in self.bootstrap_peers:
+            dial_result = self.network.dial(addr)
+            if isinstance(dial_result, dict) and dial_result.get("error"):
+                logger.warning("Dial failed for %s: %s", addr, dial_result.get("error"))
 
         health = self.network.health()
         if health.get("status") == "ok":
@@ -78,6 +86,12 @@ class Agent:
             logger.warning("Agent %s: node health check failed: %s", self.agent_id, health)
 
         return self
+
+    def leave(self):
+        """Leave contributor mode and mark the local agent disconnected."""
+        self._contributing = False
+        self._connected = False
+        logger.info("Agent %s left active participation", self.agent_id)
 
     def contribute(self, gpu_memory: str = "0", accelerator: str = "cpu") -> "Agent":
         """Advertise compute capacity. Unlocks unlimited access.
@@ -265,12 +279,16 @@ class Agent:
 
     def status(self) -> dict:
         """Get current agent and network status."""
+        node_status = self.network.status()
         health = self.network.health()
+        if isinstance(node_status, dict) and node_status.get("status") and "error" not in node_status:
+            health = {"status": node_status.get("status")}
         return {
             "agent_id": self.agent_id,
             "connected": self._connected,
             "contributing": self._contributing,
             "tier": self.tier,
+            "node_status": node_status,
             "node_health": health,
         }
 

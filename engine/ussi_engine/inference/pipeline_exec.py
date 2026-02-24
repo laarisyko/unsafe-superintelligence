@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import logging
 from typing import Callable, Dict, List, Optional
 
 import torch
 
+from ..data.tokenizer import BOS_TOKEN, Tokenizer, TokenizerConfig
 from ..model.shard import ModelShard
 from ..model.pipeline import serialize_tensor, deserialize_tensor
 
@@ -37,6 +39,13 @@ class PipelineInferenceExecutor:
         self.local_peer_id = local_peer_id
         self.send_activation_fn = send_activation_fn
         self.recv_activation_fn = recv_activation_fn
+        self.tokenizer = Tokenizer(TokenizerConfig(mode="byte", vocab_size=260, max_sequence_length=512))
+        self._seed = int.from_bytes(
+            hashlib.sha256(local_shard.merkle_root() + local_shard.config.model_id.encode("utf-8")).digest()[:8],
+            "big",
+        )
+        self._embedding_cache: Dict[int, torch.Tensor] = {}
+        self._projection_cache: Dict[int, torch.Tensor] = {}
 
     @property
     def local_stage_index(self) -> int:
@@ -78,7 +87,6 @@ class PipelineInferenceExecutor:
 
         with torch.no_grad():
             if self.is_first_stage:
-                # Create input (placeholder tokenization).
                 x = self._tokenize(prompt)
             elif self.recv_activation_fn:
                 data = self.recv_activation_fn(self.prev_peer)
@@ -86,7 +94,6 @@ class PipelineInferenceExecutor:
             else:
                 x = self._tokenize(prompt)
 
-            # Forward through local shard.
             output = self.local_shard.forward(x)
 
             if self.is_last_stage:
@@ -94,9 +101,9 @@ class PipelineInferenceExecutor:
             elif self.send_activation_fn and self.next_peer:
                 data = serialize_tensor(output)
                 self.send_activation_fn(data, self.next_peer)
-                return "[forwarded to next stage]"
+                return f"forwarded:{self.next_peer}:{len(data)}"
             else:
-                return f"[stage {self.local_stage_index} output shape: {list(output.shape)}]"
+                return self._activation_summary(output)
 
     async def run_async(self, prompt: str) -> str:
         """Async pipeline inference with network awaits."""
@@ -118,9 +125,9 @@ class PipelineInferenceExecutor:
             elif self.send_activation_fn and self.next_peer:
                 data = serialize_tensor(output)
                 await _maybe_await(self.send_activation_fn(data, self.next_peer))
-                return "[forwarded to next stage]"
+                return f"forwarded:{self.next_peer}:{len(data)}"
             else:
-                return f"[stage {self.local_stage_index} output]"
+                return self._activation_summary(output)
 
     def process_activation(self, tensor_bytes: bytes) -> bytes:
         """Process an incoming activation chunk from the previous stage.
@@ -135,23 +142,83 @@ class PipelineInferenceExecutor:
             return serialize_tensor(output)
 
     def _tokenize(self, prompt: str) -> torch.Tensor:
-        """Placeholder tokenization. In production, use a real tokenizer."""
-        # Encode prompt characters as a simple embedding.
-        token_ids = [ord(c) % 256 for c in prompt[:128]]
-        while len(token_ids) < 128:
-            token_ids.append(0)
-        x = torch.tensor(token_ids, dtype=torch.float32).unsqueeze(0).unsqueeze(-1)
-        # Expand to a reasonable hidden dimension.
-        x = x.expand(-1, -1, 512)
-        return x.to(self.local_shard.device)
+        """Encode prompt bytes into deterministic embeddings."""
+        token_ids = self.tokenizer.encode(prompt, add_special=False)
+        if not token_ids:
+            token_ids = [BOS_TOKEN]
+        ids = torch.tensor([token_ids], dtype=torch.long, device=self.local_shard.device)
+        input_dim = self._infer_input_dim()
+        embedding = self._embedding_matrix(input_dim, self._parameter_dtype())
+        return embedding[ids]
 
     def _detokenize(self, output: torch.Tensor) -> str:
-        """Placeholder detokenization."""
-        # Take argmax of last token's output as placeholder.
-        if output.dim() >= 2:
-            last = output[0, -1]
-            return f"[output dim={output.shape[-1]}, max={last.max().item():.4f}]"
-        return f"[output: {output.shape}]"
+        """Project final activations to token space and decode to UTF-8 text."""
+        if output.dim() == 2:
+            output = output.unsqueeze(0)
+        if output.dim() < 3:
+            return ""
+
+        projection = self._projection_matrix(output.shape[-1], output.dtype)
+        logits = output @ projection
+        if logits.shape[-1] >= 4:
+            logits[..., :4] = float("-inf")
+        token_ids = torch.argmax(logits[0], dim=-1).tolist()
+        text = self.tokenizer.decode(token_ids)
+        if text:
+            return text
+        return "tokens:" + ",".join(str(t) for t in token_ids[:8])
+
+    def _activation_summary(self, output: torch.Tensor) -> str:
+        digest = hashlib.sha256(output.detach().cpu().numpy().tobytes()).hexdigest()[:16]
+        return f"activation:{digest}:{list(output.shape)}"
+
+    def _embedding_matrix(self, dim: int, dtype: torch.dtype) -> torch.Tensor:
+        mat = self._embedding_cache.get(dim)
+        if mat is None:
+            generator = torch.Generator(device="cpu")
+            generator.manual_seed(self._seed ^ (dim << 1) ^ 0xA5A5A5A5)
+            mat = torch.randn(
+                self.tokenizer.vocab_size,
+                dim,
+                generator=generator,
+                dtype=torch.float32,
+            ) * 0.02
+            self._embedding_cache[dim] = mat
+        return mat.to(device=self.local_shard.device, dtype=dtype)
+
+    def _projection_matrix(self, dim: int, dtype: torch.dtype) -> torch.Tensor:
+        mat = self._projection_cache.get(dim)
+        if mat is None:
+            generator = torch.Generator(device="cpu")
+            generator.manual_seed(self._seed ^ (dim << 3) ^ 0x5A5A5A5A)
+            mat = torch.randn(
+                dim,
+                self.tokenizer.vocab_size,
+                generator=generator,
+                dtype=torch.float32,
+            ) * 0.02
+            self._projection_cache[dim] = mat
+        return mat.to(device=self.local_shard.device, dtype=dtype)
+
+    def _parameter_dtype(self) -> torch.dtype:
+        for param in self.local_shard.parameters():
+            return param.dtype
+        return torch.float32
+
+    def _infer_input_dim(self) -> int:
+        for layer in self.local_shard.layers:
+            for module in layer.modules():
+                if hasattr(module, "in_features"):
+                    return int(getattr(module, "in_features"))
+                weight = getattr(module, "weight", None)
+                if isinstance(weight, torch.Tensor) and weight.dim() >= 2:
+                    return int(weight.shape[1])
+        for param in self.local_shard.parameters():
+            if param.dim() >= 2:
+                return int(param.shape[-1])
+            if param.dim() == 1:
+                return int(param.shape[0])
+        return 256
 
 
 async def _maybe_await(val):

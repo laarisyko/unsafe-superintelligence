@@ -6,9 +6,10 @@ decentralized LLM network.
 ## Quick Reference
 
 ```bash
-bash ~/.openclaw/skills/unsafesuperintelligence/scripts/bootstrap-contributor.sh  # Install + start node + join as contributor
+ussi openclaw bootstrap --json      # Install peers from OpenClaw + start node + join as contributor
 ussi detect --json                    # Auto-detect GPU/CPU resources
 ussi node start                       # Start local P2P node (Docker)
+ussi node start --openclaw            # Start node with OpenClaw bootstrap discovery
 ussi node stop                        # Stop local P2P node
 ussi node logs                        # View node logs
 ussi join --gpu-memory 8GB --json     # Join network, advertise compute
